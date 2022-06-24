@@ -193,14 +193,14 @@
 
 #endif /* INC_INA229_H_ */
 
-uint16_t ina229_ReadReg_16(uint16_t Address);
-uint32_t ina229_ReadReg_24(uint16_t Address);
-void ina229_WriteReg(uint16_t Address, uint16_t Data);
-void ina229_Init();
-uint16_t ina229_ReadManufacturerID();
-uint16_t ina229_ReadDeviceID();
-void ina229_SetCalibration(uint16_t Calibration);
-uint16_t ina230_GetCalibration(uint16_t Address);
-int32_t ina230_GetCurrent();
-uint32_t ina229_GetVBus();
-int32_t ina229_GetVShunt(uint8_t ADCRange);
+//uint16_t ina229_ReadReg_16(uint16_t Address);
+//uint32_t ina229_ReadReg_24(uint16_t Address);
+//void ina229_WriteReg(uint16_t Address, uint16_t Data);
+//void ina229_Init();
+//uint16_t ina229_ReadManufacturerID();
+//uint16_t ina229_ReadDeviceID();
+//void ina229_SetCalibration(uint16_t Calibration);
+//uint16_t ina230_GetCalibration(uint16_t Address);
+//int32_t ina230_GetCurrent();
+//uint32_t ina229_GetVBus();
+//int32_t ina229_GetVShunt(uint8_t ADCRange);
