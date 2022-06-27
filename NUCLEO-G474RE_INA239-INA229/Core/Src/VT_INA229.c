@@ -13,6 +13,39 @@ uint8_t INA229_msg_lenght_cntr = 0;
 uint8_t INA229_send_packet[100], INA229_send_packet_decoder[100];
 uint8_t INA229_recv_packet[100], INA229_recv_packet_decoder[100];
 
+uint16_t INA229_REG_CONFIG_val;
+uint16_t INA229_REG_ADC_CONFIG_val;
+uint16_t INA229_REG_SHUNT_CAL_val;
+uint16_t INA229_REG_SHUNT_TEMPCO_val;
+uint16_t INA229_REG_VSHUNT_val;
+uint16_t INA229_REG_VBUS_val;
+uint16_t INA229_REG_DIETEMP_val;
+uint16_t INA229_REG_CURRENT_val;
+uint16_t INA229_REG_POWER_val;
+uint16_t INA229_REG_ENERGY_val;
+uint16_t INA229_REG_CHARGE_val;
+uint16_t INA229_REG_DIAG_ALRT_val;
+uint16_t INA229_REG_SOVL_val;
+uint16_t INA229_REG_SUVL_val;
+uint16_t INA229_REG_BOVL_val;
+uint16_t INA229_REG_BUVL_val;
+uint16_t INA229_REG_TEMP_LIMIT_val;
+uint16_t INA229_REG_PWR_LIMIT_val;
+uint16_t INA229_REG_MANUFACTURER_ID_val;
+uint16_t INA229_REG_DEVICE_ID_val;
+
+uint16_t swap_2_bytes(uint8_t low_byte, uint8_t high_byte){
+
+}
+
+uint32_t swap_3_bytes(uint8_t low_byte, uint8_t mid_byte, uint8_t high_byte){
+
+}
+
+uint64_t swap_5_bytes(uint8_t lowlow_byte, uint8_t low_byte, uint8_t mid_byte, uint8_t high_byte, uint8_t highhigh_byte){
+
+}
+
 void VT_INA229_ReadAllReg(void)
 {
 	// reset msg cntr before constructing the message

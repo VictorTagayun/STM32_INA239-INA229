@@ -69,6 +69,7 @@ uint8_t button_pressed = 0;
 extern uint8_t INA229_msg_lenght_cntr;
 extern uint8_t INA229_send_packet[100], INA229_send_packet_decoder[100];
 extern uint8_t INA229_recv_packet[100], INA229_recv_packet_decoder[100];
+uint8_t INA229_decodedAddress, INA229_decoded_Reg, INA229_decoded_Command;
 
 extern uint8_t INA239_msg_lenght_cntr;
 extern uint8_t INA239_send_packet[100], INA239_send_packet_decoder[100];
@@ -502,32 +503,32 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 	button_pressed = 1;
 
-//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
-//
-//	aTxBuffer[0] = (INA229_REG_DIAG_ALRT << 2) + 1;
-//	aTxBuffer[1] = 0;
-//	aTxBuffer[2] = 0;
-//
-//	switch (HAL_SPI_TransmitReceive_DMA(&hspi3, (uint8_t*) aTxBuffer, (uint8_t*) aRxBuffer, 3)) {
-//	case HAL_OK:
-//		/* Communication is completed ___________________________________________ */
-//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
-//		//		HAL_Delay(500); // will cause hang
-//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
-//		break;
-//
-//	case HAL_TIMEOUT:
-//		/* An Error Occur ______________________________________________________ */
-//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
-//		//		HAL_Delay(500);
-//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
-//	case HAL_ERROR:
-//		/* Call Timeout Handler */
-//		Error_Handler();
-//		break;
-//	default:
-//		break;
-//	}
+	//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
+	//
+	//	aTxBuffer[0] = (INA229_REG_DIAG_ALRT << 2) + 1;
+	//	aTxBuffer[1] = 0;
+	//	aTxBuffer[2] = 0;
+	//
+	//	switch (HAL_SPI_TransmitReceive_DMA(&hspi3, (uint8_t*) aTxBuffer, (uint8_t*) aRxBuffer, 3)) {
+	//	case HAL_OK:
+	//		/* Communication is completed ___________________________________________ */
+	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
+	//		//		HAL_Delay(500); // will cause hang
+	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
+	//		break;
+	//
+	//	case HAL_TIMEOUT:
+	//		/* An Error Occur ______________________________________________________ */
+	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
+	//		//		HAL_Delay(500);
+	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
+	//	case HAL_ERROR:
+	//		/* Call Timeout Handler */
+	//		Error_Handler();
+	//		break;
+	//	default:
+	//		break;
+	//	}
 
 }
 
@@ -547,9 +548,57 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 
 		if (INA229_send_packet_decoder[cntr] != 0) // decode
 		{
-			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_send_packet_decoder[cntr] - 1);
-			//			if
-			//			INA239decodedAddress = INA239_send_packet_decoder[cntr] >> 2 - 1;
+			INA229_decodedAddress = INA229_send_packet_decoder[cntr] - 1;
+			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
+			switch(INA229_decodedAddress)
+			{
+			case INA229_REG_CONFIG: // 00h
+				break;
+			case INA229_REG_ADC_CONFIG: // 01h
+				break;
+			case INA229_REG_SHUNT_CAL: // 02h
+				break;
+			case INA229_REG_SHUNT_TEMPCO: // 03h
+				break;
+			case INA229_REG_VSHUNT: // 04h
+				break;
+			case INA229_REG_VBUS: // 05h
+				break;
+			case INA229_REG_DIETEMP: //06h
+				break;
+			case INA229_REG_CURRENT: // 07h
+				break;
+			case INA229_REG_POWER: // 08h
+			break;
+			case INA229_REG_ENERGY: // 09h
+				break;
+			case INA229_REG_CHARGE: // 0ah
+				break;
+			case INA229_REG_DIAG_ALRT: // 0bh
+				break;
+			case INA229_REG_SOVL: // 0ch
+				break;
+			case INA229_REG_SUVL:
+				break;
+			case INA229_REG_BOVL:
+				break;
+			case INA229_REG_BUVL:
+				break;
+			case INA229_REG_TEMP_LIMIT:
+				break;
+			case INA229_REG_PWR_LIMIT:
+				break;
+			case INA229_REG_MANUFACTURER_ID:
+				break;
+			case INA229_REG_DEVICE_ID:
+				break;
+			default:
+				break;
+
+
+
+			}
+
 		} else
 		{
 			printf("INA229_recv_packet[%d] = %x \n", cntr , INA229_recv_packet[cntr]);
