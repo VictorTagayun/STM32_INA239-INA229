@@ -10,8 +10,34 @@
 
 // SPI transmit data
 uint8_t INA229_msg_lenght_cntr = 0;
-uint8_t INA229_send_packet[100], INA229_send_packet_mirror[100];
-uint8_t INA229_recv_packet[100], INA229_recv_packet_mirror[100];
+uint8_t INA229_send_packet[100], INA229_send_packet_decoder[100];
+uint8_t INA229_recv_packet[100], INA229_recv_packet_decoder[100];
+
+void VT_INA229_ReadAllReg(void)
+{
+	// reset msg cntr before constructing the message
+	INA229_msg_lenght_cntr = 0;
+	VT_INA229_ReadReg(INA229_REG_CONFIG);
+	VT_INA229_ReadReg(INA229_REG_ADC_CONFIG);
+	VT_INA229_ReadReg(INA229_REG_SHUNT_CAL);
+	VT_INA229_ReadReg(INA229_REG_SHUNT_TEMPCO);
+	VT_INA229_ReadReg(INA229_REG_VSHUNT);
+	VT_INA229_ReadReg(INA229_REG_VBUS);
+	VT_INA229_ReadReg(INA229_REG_DIETEMP);
+	VT_INA229_ReadReg(INA229_REG_CURRENT);
+	VT_INA229_ReadReg(INA229_REG_POWER);
+	VT_INA229_ReadReg(INA229_REG_ENERGY);
+	VT_INA229_ReadReg(INA229_REG_CHARGE);
+	VT_INA229_ReadReg(INA229_REG_DIAG_ALRT);
+	VT_INA229_ReadReg(INA229_REG_SOVL);
+	VT_INA229_ReadReg(INA229_REG_SUVL);
+	VT_INA229_ReadReg(INA229_REG_BOVL);
+	VT_INA229_ReadReg(INA229_REG_BUVL);
+	VT_INA229_ReadReg(INA229_REG_TEMP_LIMIT);
+	VT_INA229_ReadReg(INA229_REG_PWR_LIMIT);
+	VT_INA229_ReadReg(INA229_REG_MANUFACTURER_ID);
+	VT_INA229_ReadReg(INA229_REG_DEVICE_ID);
+}
 
 void VT_INA229_ReadReg(uint8_t Address)
 {
@@ -63,7 +89,7 @@ void VT_INA229_ReadReg(uint8_t Address)
 #define INA229_REG_DEVICE_ID         0x3F  !< Device ID register */
 void VT_INA229_ReadReg_16(uint8_t Address)
 {
-	INA229_send_packet_mirror[INA229_msg_lenght_cntr] = Address  + 1;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1;
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1;
 	INA229_msg_lenght_cntr++; // increment cntr for data
 	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 2; // leave space for 16bit data
@@ -76,7 +102,7 @@ void VT_INA229_ReadReg_16(uint8_t Address)
 #define INA229_REG_POWER             0x08  !< Power Result register */
 void VT_INA229_ReadReg_24(uint8_t Address)
 {
-	INA229_send_packet_mirror[INA229_msg_lenght_cntr] = Address  + 1;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1;
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1;
 	INA229_msg_lenght_cntr++; // increment cntr for data
 	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 3; // leave space for 24bit data
@@ -87,7 +113,7 @@ void VT_INA229_ReadReg_24(uint8_t Address)
 #define INA229_REG_CHARGE            0x0A  !< Charge Result register */
 void VT_INA229_ReadReg_40(uint8_t Address)
 {
-	INA229_send_packet_mirror[INA229_msg_lenght_cntr] = Address  + 1;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1;
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1;
 	INA229_msg_lenght_cntr++; // increment cntr for data
 	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 5; // leave space for 40bit data

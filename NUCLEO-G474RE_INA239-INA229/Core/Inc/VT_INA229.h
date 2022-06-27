@@ -8,6 +8,7 @@
 //#ifndef VT_INA229_H
 //#define VT_INA229_H
 
+void VT_INA229_ReadAllReg(void);
 void VT_INA229_ReadReg(uint8_t Address);
 void VT_INA229_ReadReg_16(uint8_t Address);
 void VT_INA229_ReadReg_24(uint8_t Address);
