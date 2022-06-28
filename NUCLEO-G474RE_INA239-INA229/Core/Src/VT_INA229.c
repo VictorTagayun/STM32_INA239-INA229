@@ -34,19 +34,19 @@ uint16_t INA229_REG_PWR_LIMIT_val;
 uint16_t INA229_REG_MANUFACTURER_ID_val;
 uint16_t INA229_REG_DEVICE_ID_val;
 
-uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte){
-
+uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte)
+{
 	return (high_byte << 8) + low_byte;
 }
 
-uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte){
-
+uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte)
+{
 	return (high_byte << 8*2) + (mid_byte << 8) + low_byte;
 }
 
-uint64_t Combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte){
-
-	return (highhigh_byte << 8*4) + (high_byte << 8*3) + (high_byte << 8*2) + (high_byte << 8) + low_byte;
+uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte)
+{
+	return (highhigh_byte << 8*4) + (high_byte << 8*3) + (mid_byte << 8*2) + (low_byte << 8) + lowlow_byte;
 }
 
 void VT_INA229_ReadAllReg(void)

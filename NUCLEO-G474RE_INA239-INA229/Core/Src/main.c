@@ -69,7 +69,29 @@ uint8_t button_pressed = 0;
 extern uint8_t INA229_msg_lenght_cntr;
 extern uint8_t INA229_send_packet[100], INA229_send_packet_decoder[100];
 extern uint8_t INA229_recv_packet[100], INA229_recv_packet_decoder[100];
+
 uint8_t INA229_decodedAddress, INA229_decoded_Reg, INA229_decoded_Command;
+
+extern uint16_t INA229_REG_CONFIG_val;
+extern uint16_t INA229_REG_ADC_CONFIG_val;
+extern uint16_t INA229_REG_SHUNT_CAL_val;
+extern uint16_t INA229_REG_SHUNT_TEMPCO_val;
+extern uint32_t INA229_REG_VSHUNT_val;
+extern uint32_t INA229_REG_VBUS_val;
+extern uint16_t INA229_REG_DIETEMP_val;
+extern uint32_t INA229_REG_CURRENT_val;
+extern uint32_t INA229_REG_POWER_val;
+extern uint64_t INA229_REG_ENERGY_val;
+extern uint64_t INA229_REG_CHARGE_val;
+extern uint16_t INA229_REG_DIAG_ALRT_val;
+extern uint16_t INA229_REG_SOVL_val;
+extern uint16_t INA229_REG_SUVL_val;
+extern uint16_t INA229_REG_BOVL_val;
+extern uint16_t INA229_REG_BUVL_val;
+extern uint16_t INA229_REG_TEMP_LIMIT_val;
+extern uint16_t INA229_REG_PWR_LIMIT_val;
+extern uint16_t INA229_REG_MANUFACTURER_ID_val;
+extern uint16_t INA229_REG_DEVICE_ID_val;
 
 extern uint8_t INA239_msg_lenght_cntr;
 extern uint8_t INA239_send_packet[100], INA239_send_packet_decoder[100];
@@ -88,7 +110,10 @@ static void MX_SPI3_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
-
+extern void VT_INA229_ReadAllReg(void);
+extern uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte);
+extern uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
+extern uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte);
 
 /* USER CODE END PFP */
 
@@ -549,68 +574,88 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 		if (INA229_send_packet_decoder[cntr] != 0) // decode
 		{
 			INA229_decodedAddress = INA229_send_packet_decoder[cntr] - 1;
-			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
+//			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
 			switch(INA229_decodedAddress)
 			{
-			case INA229_REG_CONFIG: // 00h
-				INA229_REG_CONFIG_val =
+			case INA229_REG_CONFIG: // 00h, 2 bytes
+				INA229_REG_CONFIG_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_CONFIG_val = %x \n", INA229_REG_CONFIG_val);
 				break;
-			case INA229_REG_ADC_CONFIG: // 01h
-				INA229_REG_ADC_CONFIG_val
+			case INA229_REG_ADC_CONFIG: // 01h, 2 bytes
+				INA229_REG_ADC_CONFIG_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_ADC_CONFIG_val = %x \n", INA229_REG_ADC_CONFIG_val);
 				break;
-			case INA229_REG_SHUNT_CAL: // 02h
-				INA229_REG_SHUNT_CAL_val
+			case INA229_REG_SHUNT_CAL: // 02h, 2 bytes
+				INA229_REG_SHUNT_CAL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_SHUNT_CAL_val = %x \n", INA229_REG_SHUNT_CAL_val);
 				break;
-			case INA229_REG_SHUNT_TEMPCO: // 03h
-				INA229_REG_SHUNT_TEMPCO_val
+			case INA229_REG_SHUNT_TEMPCO: // 03h, 2 bytes
+				INA229_REG_SHUNT_TEMPCO_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_SHUNT_TEMPCO_val = %x \n", INA229_REG_SHUNT_TEMPCO_val);
 				break;
-			case INA229_REG_VSHUNT: // 04h
-				INA229_REG_VSHUNT_val
+			case INA229_REG_VSHUNT: // 04h, 3 bytes
+				INA229_REG_VSHUNT_val = combine_3_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
+				printf("INA229_REG_VSHUNT_val = %x \n", INA229_REG_VSHUNT_val);
 				break;
-			case INA229_REG_VBUS: // 05h
-				INA229_REG_VBUS_val
+			case INA229_REG_VBUS: // 05h, 3 bytes
+				INA229_REG_VBUS_val = combine_3_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
+				printf("INA229_REG_VBUS_val = %x \n", INA229_REG_VBUS_val);
 				break;
-			case INA229_REG_DIETEMP: //06h
-				INA229_REG_DIETEMP_val
+			case INA229_REG_DIETEMP: //06h, 2 bytes
+				INA229_REG_DIETEMP_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_DIETEMP_val = %x \n", INA229_REG_DIETEMP_val);
 				break;
-			case INA229_REG_CURRENT: // 07h
-				INA229_REG_CURRENT_val
+			case INA229_REG_CURRENT: // 07h, 3 bytes
+				INA229_REG_CURRENT_val = combine_3_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
+				printf("INA229_REG_CURRENT_val = %x \n", INA229_REG_CURRENT_val);
 				break;
-			case INA229_REG_POWER: // 08h
-				INA229_REG_POWER_val
-			break;
-			case INA229_REG_ENERGY: // 09h
-				INA229_REG_ENERGY_val
+			case INA229_REG_POWER: // 08h, 3 bytes
+				INA229_REG_POWER_val = combine_3_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
+				printf("INA229_REG_POWER_val = %x \n", INA229_REG_POWER_val);
 				break;
-			case INA229_REG_CHARGE: // 0ah
-				INA229_REG_CHARGE_val
+			case INA229_REG_ENERGY: // 09h, 5 bytes
+				INA229_REG_ENERGY_val = combine_5_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3], INA229_recv_packet[cntr + 4], INA229_recv_packet[cntr + 5]);
+				printf("INA229_REG_ENERGY_val = %x%08x \n", INA229_REG_ENERGY_val);
+				break;
+			case INA229_REG_CHARGE: // 0ah, 5 bytes
+				INA229_REG_CHARGE_val = combine_5_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3], INA229_recv_packet[cntr + 4], INA229_recv_packet[cntr + 5]);
+				printf("INA229_REG_CHARGE_val = %x%08x \n", INA229_REG_CHARGE_val);
 				break;
 			case INA229_REG_DIAG_ALRT: // 0bh
-				INA229_REG_DIAG_ALRT_val
+				INA229_REG_DIAG_ALRT_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_DIAG_ALRT_val = %x \n", INA229_REG_DIAG_ALRT_val);
 				break;
 			case INA229_REG_SOVL: // 0ch
-				INA229_REG_SOVL_val
+				INA229_REG_SOVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_SOVL_val = %x \n", INA229_REG_SOVL_val);
 				break;
 			case INA229_REG_SUVL:
-				INA229_REG_SUVL_val
+				INA229_REG_SUVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_SUVL_val = %x \n", INA229_REG_SUVL_val);
 				break;
 			case INA229_REG_BOVL:
-				INA229_REG_BOVL_val
+				INA229_REG_BOVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_BOVL_val = %x \n", INA229_REG_BOVL_val);
 				break;
 			case INA229_REG_BUVL:
-				INA229_REG_BUVL_val
+				INA229_REG_BUVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_BUVL_val = %x \n", INA229_REG_BUVL_val);
 				break;
 			case INA229_REG_TEMP_LIMIT:
-				INA229_REG_TEMP_LIMIT_val
+				INA229_REG_TEMP_LIMIT_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_TEMP_LIMIT_val = %x \n", INA229_REG_TEMP_LIMIT_val);
 				break;
 			case INA229_REG_PWR_LIMIT:
-				INA229_REG_PWR_LIMIT_val
+				INA229_REG_PWR_LIMIT_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_PWR_LIMIT_val = %x \n", INA229_REG_PWR_LIMIT_val);
 				break;
 			case INA229_REG_MANUFACTURER_ID:
-				INA229_REG_MANUFACTURER_ID_val
+				INA229_REG_MANUFACTURER_ID_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_MANUFACTURER_ID_val = %x \n", INA229_REG_MANUFACTURER_ID_val);
 				break;
 			case INA229_REG_DEVICE_ID:
-				INA229_REG_DEVICE_ID_val
+				INA229_REG_DEVICE_ID_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
+				printf("INA229_REG_DEVICE_ID_val = %x \n", INA229_REG_DEVICE_ID_val);
 				break;
 			default:
 				break;

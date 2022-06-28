@@ -5,8 +5,8 @@
  *      Author: Victor
  */
 
-//#ifndef VT_INA239_H
-//#define VT_INA239_H
+//#ifndef INC_VT_INA239_H_
+//#define INC_VT_INA239_H_
 
 void VT_INA239_ReadReg(uint8_t Address);
 void VT_INA239_ReadReg_16(uint8_t Address);
