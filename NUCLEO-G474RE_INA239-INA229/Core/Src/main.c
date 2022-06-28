@@ -553,48 +553,67 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 			switch(INA229_decodedAddress)
 			{
 			case INA229_REG_CONFIG: // 00h
+				INA229_REG_CONFIG_val =
 				break;
 			case INA229_REG_ADC_CONFIG: // 01h
+				INA229_REG_ADC_CONFIG_val
 				break;
 			case INA229_REG_SHUNT_CAL: // 02h
+				INA229_REG_SHUNT_CAL_val
 				break;
 			case INA229_REG_SHUNT_TEMPCO: // 03h
+				INA229_REG_SHUNT_TEMPCO_val
 				break;
 			case INA229_REG_VSHUNT: // 04h
+				INA229_REG_VSHUNT_val
 				break;
 			case INA229_REG_VBUS: // 05h
+				INA229_REG_VBUS_val
 				break;
 			case INA229_REG_DIETEMP: //06h
+				INA229_REG_DIETEMP_val
 				break;
 			case INA229_REG_CURRENT: // 07h
+				INA229_REG_CURRENT_val
 				break;
 			case INA229_REG_POWER: // 08h
+				INA229_REG_POWER_val
 			break;
 			case INA229_REG_ENERGY: // 09h
+				INA229_REG_ENERGY_val
 				break;
 			case INA229_REG_CHARGE: // 0ah
+				INA229_REG_CHARGE_val
 				break;
 			case INA229_REG_DIAG_ALRT: // 0bh
+				INA229_REG_DIAG_ALRT_val
 				break;
 			case INA229_REG_SOVL: // 0ch
+				INA229_REG_SOVL_val
 				break;
 			case INA229_REG_SUVL:
+				INA229_REG_SUVL_val
 				break;
 			case INA229_REG_BOVL:
+				INA229_REG_BOVL_val
 				break;
 			case INA229_REG_BUVL:
+				INA229_REG_BUVL_val
 				break;
 			case INA229_REG_TEMP_LIMIT:
+				INA229_REG_TEMP_LIMIT_val
 				break;
 			case INA229_REG_PWR_LIMIT:
+				INA229_REG_PWR_LIMIT_val
 				break;
 			case INA229_REG_MANUFACTURER_ID:
+				INA229_REG_MANUFACTURER_ID_val
 				break;
 			case INA229_REG_DEVICE_ID:
+				INA229_REG_DEVICE_ID_val
 				break;
 			default:
 				break;
-
 
 
 			}
