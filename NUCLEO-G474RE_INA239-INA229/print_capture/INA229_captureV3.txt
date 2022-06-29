@@ -1,5 +1,4 @@
 Starting >> NUCLEO-G474RE_INA239-INA229 
-VT_INA229_ReadAllReg 
 INA229_send_packet[0] = 1 
 INA229_send_packet[1] = ff 
 INA229_send_packet[2] = ff 
@@ -70,7 +69,6 @@ INA229_send_packet[66] = ff
 INA229_send_packet[67] = fd 
 INA229_send_packet[68] = ff 
 INA229_send_packet[69] = ff 
-SPI_DMA_TXRX 
 HAL_SPI_TxRxCpltCallback 
 INA229_send_packet_decoder[0] = 0 
 INA229_REG_CONFIG_val = 0 
@@ -89,24 +87,24 @@ INA229_REG_SHUNT_TEMPCO_val = 0
 INA229_recv_packet[10] = 0 
 INA229_recv_packet[11] = 0 
 INA229_send_packet_decoder[12] = 4 
-INA229_REG_VSHUNT_val = ffff10 
+INA229_REG_VSHUNT_val = ffffa0 
 INA229_recv_packet[13] = ff 
 INA229_recv_packet[14] = ff 
-INA229_recv_packet[15] = 10 
+INA229_recv_packet[15] = a0 
 INA229_send_packet_decoder[16] = 5 
-INA229_REG_VBUS_val = c0 
+INA229_REG_VBUS_val = 10 
 INA229_recv_packet[17] = 0 
 INA229_recv_packet[18] = 0 
-INA229_recv_packet[19] = c0 
+INA229_recv_packet[19] = 10 
 INA229_send_packet_decoder[20] = 6 
-INA229_REG_DIETEMP_val = a7e 
+INA229_REG_DIETEMP_val = a53 
 INA229_recv_packet[21] = a 
-INA229_recv_packet[22] = 7e 
+INA229_recv_packet[22] = 53 
 INA229_send_packet_decoder[23] = 7 
-INA229_REG_CURRENT_val = ffff10 
+INA229_REG_CURRENT_val = ffffa0 
 INA229_recv_packet[24] = ff 
 INA229_recv_packet[25] = ff 
-INA229_recv_packet[26] = 10 
+INA229_recv_packet[26] = a0 
 INA229_send_packet_decoder[27] = 8 
 INA229_REG_POWER_val = 0 
 INA229_recv_packet[28] = 0 
@@ -120,12 +118,12 @@ INA229_recv_packet[34] = 0
 INA229_recv_packet[35] = 0 
 INA229_recv_packet[36] = 0 
 INA229_send_packet_decoder[37] = a 
-INA229_REG_CHARGE_val = 20000250000075eb 
+INA229_REG_CHARGE_val = 2000025000003f43 
 INA229_recv_packet[38] = 0 
 INA229_recv_packet[39] = 0 
 INA229_recv_packet[40] = 0 
-INA229_recv_packet[41] = 75 
-INA229_recv_packet[42] = eb 
+INA229_recv_packet[41] = 3f 
+INA229_recv_packet[42] = 43 
 INA229_send_packet_decoder[43] = b 
 INA229_REG_DIAG_ALRT_val = 3 
 INA229_recv_packet[44] = 0 
@@ -162,8 +160,4 @@ INA229_send_packet_decoder[67] = 3f
 INA229_REG_DEVICE_ID_val = 2291 
 INA229_recv_packet[68] = 22 
 INA229_recv_packet[69] = 91 
-SPI_DMA_TXRX 
-EnA229_recv_packet[69] = 91 
-91 
-3f 
- 
+Ending >> NUCLEO-G474RE_INA239-INA229 

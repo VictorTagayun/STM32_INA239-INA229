@@ -60,7 +60,8 @@ uint8_t aTxBuffer[21];
 uint8_t aRxBuffer[21];
 
 // for 0V - 160V variable output PWM
-volatile uint16_t duty_cycle = 50;
+volatile uint16_t duty_cycle = 0;
+uint16_t duty_cycle_increase = 0;
 
 // push button
 uint8_t button_pressed = 0;
@@ -111,6 +112,7 @@ static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 extern void VT_INA229_ReadAllReg(void);
+extern void VT_INA229_ReadRegPartial1(void);
 extern uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte);
 extern uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
 extern uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte);
@@ -159,13 +161,13 @@ int main(void)
 	printf("Starting >> NUCLEO-G474RE_INA239-INA229 \n");
 
 	// Opto duty cycle by DMA
-	duty_cycle = 100; // div by 10
+	duty_cycle = 00; // div by 10
 	if (HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_1, (uint32_t *) &duty_cycle, 1) != HAL_OK)
 	{
 		/* PWM Generation Error */
 		while(1)
 		{
-			HAL_Delay(100);
+			HAL_Delay(1000);
 			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		}
 	}
@@ -190,31 +192,28 @@ int main(void)
 
 	VT_INA229_ReadAllReg();
 
-
 	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
 	{
 		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
 	}
 
 	// SPI DMA TX-RX
-	switch (HAL_SPI_TransmitReceive_DMA(&hspi3, (uint8_t*) INA229_send_packet, (uint8_t*) INA229_recv_packet, INA229_msg_lenght_cntr)) {
-	case HAL_OK:
-		/* Communication is completed ___________________________________________ */
-		break;
+	SPI_DMA_TXRX();
 
-	case HAL_TIMEOUT:
-		/* An Error Occur ______________________________________________________ */
-		printf("SPI HAL_TIMEOUT \n");
-	case HAL_ERROR:
-		/* Call Timeout Handler */
-		printf("SPI HAL_ERROR \n");
-		Error_Handler();
-		break;
-	default:
-		break;
-	}
+	//	HAL_SPI_DMAStop(&hspi3);
 
-	HAL_Delay(5);
+	HAL_Delay(50);
+
+	//	VT_INA229_ReadRegPartial1();
+	//
+	//	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
+	//	{
+	//		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
+	//	}
+
+	// SPI DMA TX-RX
+	SPI_DMA_TXRX();
+
 
 	printf("Ending >> NUCLEO-G474RE_INA239-INA229 \n");
 
@@ -224,7 +223,22 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(20);
+		HAL_Delay(500);
+		if (duty_cycle == 0)
+		{
+			duty_cycle_increase = 1; //duty_cycle + 10; // div by 10; // div by 10
+			HAL_Delay(4000);
+		}
+		if (duty_cycle == 1000)
+		{
+			duty_cycle_increase = 0;
+			HAL_Delay(4000);
+		}
+		if (duty_cycle_increase)
+			duty_cycle = duty_cycle + 10;
+		else
+			duty_cycle = duty_cycle - 10;
+
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
@@ -515,7 +529,27 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void SPI_DMA_TXRX(void)
+{
+	printf("SPI_DMA_TXRX \n");
+	// SPI DMA TX-RX
+	switch (HAL_SPI_TransmitReceive_DMA(&hspi3, (uint8_t*) INA229_send_packet, (uint8_t*) INA229_recv_packet, INA229_msg_lenght_cntr)) {
+	case HAL_OK:
+		/* Communication is completed ___________________________________________ */
+		break;
 
+	case HAL_TIMEOUT:
+		/* An Error Occur ______________________________________________________ */
+		printf("SPI HAL_TIMEOUT \n");
+	case HAL_ERROR:
+		/* Call Timeout Handler */
+		printf("SPI HAL_ERROR \n");
+		Error_Handler();
+		break;
+	default:
+		break;
+	}
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -574,7 +608,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 		if (INA229_send_packet_decoder[cntr] != 0) // decode
 		{
 			INA229_decodedAddress = INA229_send_packet_decoder[cntr] - 1;
-//			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
+			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
 			switch(INA229_decodedAddress)
 			{
 			case INA229_REG_CONFIG: // 00h, 2 bytes
@@ -659,7 +693,6 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 				break;
 			default:
 				break;
-
 
 			}
 

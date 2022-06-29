@@ -51,6 +51,7 @@ uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mi
 
 void VT_INA229_ReadAllReg(void)
 {
+	printf("VT_INA229_ReadAllReg \n");
 	// reset msg cntr before constructing the message
 	INA229_msg_lenght_cntr = 0;
 	VT_INA229_ReadReg(INA229_REG_CONFIG);
@@ -73,6 +74,25 @@ void VT_INA229_ReadAllReg(void)
 	VT_INA229_ReadReg(INA229_REG_PWR_LIMIT);
 	VT_INA229_ReadReg(INA229_REG_MANUFACTURER_ID);
 	VT_INA229_ReadReg(INA229_REG_DEVICE_ID);
+}
+
+void VT_INA229_ReadRegPartial1(void)
+{
+	printf("VT_INA229_ReadRegPartial1 \n");
+	// reset msg cntr before constructing the message
+	INA229_msg_lenght_cntr = 0;
+	VT_INA229_ReadReg(INA229_REG_CONFIG);
+	VT_INA229_ReadReg(INA229_REG_ADC_CONFIG);
+	VT_INA229_ReadReg(INA229_REG_SHUNT_CAL);
+	VT_INA229_ReadReg(INA229_REG_SHUNT_TEMPCO);
+	VT_INA229_ReadReg(INA229_REG_VSHUNT);
+	VT_INA229_ReadReg(INA229_REG_VBUS);
+	VT_INA229_ReadReg(INA229_REG_DIETEMP);
+	VT_INA229_ReadReg(INA229_REG_CURRENT);
+	VT_INA229_ReadReg(INA229_REG_POWER);
+	VT_INA229_ReadReg(INA229_REG_ENERGY);
+	VT_INA229_ReadReg(INA229_REG_CHARGE);
+	VT_INA229_ReadReg(INA229_REG_DIAG_ALRT);
 }
 
 void VT_INA229_ReadReg(uint8_t Address)
