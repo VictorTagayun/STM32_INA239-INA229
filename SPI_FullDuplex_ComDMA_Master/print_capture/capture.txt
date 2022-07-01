@@ -1,0 +1,4 @@
+Starting >> SPI_FullDuplex_ComDMA_Master 
+HAL_SPI_TxRxCpltCallback 
+HAL_SPI_TxRxCpltCallback 
+Ending >> SPI_FullDuplex_ComDMA_Master 
