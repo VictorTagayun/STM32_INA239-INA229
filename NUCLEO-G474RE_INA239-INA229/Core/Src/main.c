@@ -66,6 +66,9 @@ uint16_t duty_cycle_increase = 0;
 // push button
 uint8_t button_pressed = 0;
 
+// HAL_SPI_TxRxCpltCallback_finished
+uint8_t HAL_SPI_TxRxCpltCallback_finished = 0;
+
 // SPI transmit data INA239/229
 extern uint8_t INA229_msg_lenght_cntr;
 extern uint8_t INA229_send_packet[100], INA229_send_packet_decoder[100];
@@ -113,9 +116,12 @@ static void MX_TIM1_Init(void);
 
 extern void VT_INA229_ReadAllReg(void);
 extern void VT_INA229_ReadRegPartial1(void);
+extern void VT_INA229_ReadRegPartial2(void);
 extern uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte);
 extern uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
 extern uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte);
+
+void SPI_DMA_TXRX(void);
 
 /* USER CODE END PFP */
 
@@ -182,14 +188,6 @@ int main(void)
 		//		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
 	}
 
-	/* Wait for User push-button press before starting the Communication */
-	while (!button_pressed)
-	{
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(100);
-	}
-	button_pressed = 0; // reset button variable so can be used again
-
 	VT_INA229_ReadAllReg();
 
 	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
@@ -200,20 +198,43 @@ int main(void)
 	// SPI DMA TX-RX
 	SPI_DMA_TXRX();
 
-	//	HAL_SPI_DMAStop(&hspi3);
+	/* Wait for HAL_SPI_TxRxCpltCallback finished */
+	while (!HAL_SPI_TxRxCpltCallback_finished)
+	{
+	}
+	HAL_SPI_TxRxCpltCallback_finished = 0; // reset HAL_SPI_TxRxCpltCallback finished
 
-	HAL_Delay(50);
+	VT_INA229_ReadRegPartial1();
 
-	//	VT_INA229_ReadRegPartial1();
-	//
-	//	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
-	//	{
-	//		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
-	//	}
+	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
+	{
+		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
+	}
 
 	// SPI DMA TX-RX
 	SPI_DMA_TXRX();
 
+	/* Wait for HAL_SPI_TxRxCpltCallback finished */
+	while (!HAL_SPI_TxRxCpltCallback_finished)
+	{
+	}
+	HAL_SPI_TxRxCpltCallback_finished = 0; // reset HAL_SPI_TxRxCpltCallback finished
+
+	VT_INA229_ReadRegPartial2();
+
+	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
+	{
+		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
+	}
+
+	// SPI DMA TX-RX
+	SPI_DMA_TXRX();
+
+	/* Wait for HAL_SPI_TxRxCpltCallback finished */
+	while (!HAL_SPI_TxRxCpltCallback_finished)
+	{
+	}
+	HAL_SPI_TxRxCpltCallback_finished = 0; // reset HAL_SPI_TxRxCpltCallback finished
 
 	printf("Ending >> NUCLEO-G474RE_INA239-INA229 \n");
 
@@ -222,22 +243,26 @@ int main(void)
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		//		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		//		HAL_Delay(500);
+		//		if (duty_cycle == 0)
+		//		{
+		//			duty_cycle_increase = 1; //duty_cycle + 10; // div by 10; // div by 10
+		//			HAL_Delay(4000);
+		//		}
+		//		if (duty_cycle == 1000)
+		//		{
+		//			duty_cycle_increase = 0;
+		//			HAL_Delay(4000);
+		//		}
+		//		if (duty_cycle_increase)
+		//			duty_cycle = duty_cycle + 10;
+		//		else
+		//			duty_cycle = duty_cycle - 10;
+
+
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(500);
-		if (duty_cycle == 0)
-		{
-			duty_cycle_increase = 1; //duty_cycle + 10; // div by 10; // div by 10
-			HAL_Delay(4000);
-		}
-		if (duty_cycle == 1000)
-		{
-			duty_cycle_increase = 0;
-			HAL_Delay(4000);
-		}
-		if (duty_cycle_increase)
-			duty_cycle = duty_cycle + 10;
-		else
-			duty_cycle = duty_cycle - 10;
+		HAL_Delay(30);
 
 		/* USER CODE END WHILE */
 
@@ -702,6 +727,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 		}
 	}
 
+	HAL_SPI_TxRxCpltCallback_finished = 1;
 }
 
 
