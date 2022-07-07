@@ -8,6 +8,8 @@
 #include "main.h"
 #include "VT_INA229.h"
 
+extern void SPI_DMA_TXRX(void);
+
 // SPI transmit data
 uint8_t INA229_msg_lenght_cntr = 0;
 uint8_t INA229_send_packet[100], INA229_send_packet_decoder[100];
@@ -74,6 +76,7 @@ void VT_INA229_ReadAllReg(void)
 	VT_INA229_ReadReg(INA229_REG_PWR_LIMIT);
 	VT_INA229_ReadReg(INA229_REG_MANUFACTURER_ID);
 	VT_INA229_ReadReg(INA229_REG_DEVICE_ID);
+	SPI_DMA_TXRX();
 }
 
 void VT_INA229_ReadRegPartial1(void)
@@ -93,6 +96,7 @@ void VT_INA229_ReadRegPartial1(void)
 	VT_INA229_ReadReg(INA229_REG_ENERGY);
 	VT_INA229_ReadReg(INA229_REG_CHARGE);
 	VT_INA229_ReadReg(INA229_REG_DIAG_ALRT);
+	SPI_DMA_TXRX();
 }
 
 void VT_INA229_ReadReg(uint8_t Address)

@@ -49,9 +49,6 @@ SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi3_tx;
 DMA_HandleTypeDef hdma_spi3_rx;
 
-TIM_HandleTypeDef htim1;
-DMA_HandleTypeDef hdma_tim1_ch1;
-
 /* USER CODE BEGIN PV */
 
 /* Buffer used for transmission */
@@ -101,17 +98,20 @@ extern uint8_t INA239_recv_packet[100], INA239_recv_packet_decoder[100];
 
 uint8_t INA239decodedAddress, INA239decodedReg, INA239decodedCommand;
 
+// UART Variables
+uint8_t UartRxBuffer[1];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_LPUART1_UART_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI3_Init(void);
-static void MX_TIM1_Init(void);
+static void MX_LPUART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
+void SPI_DMA_TXRX(void);
 extern void VT_INA229_ReadAllReg(void);
 extern void VT_INA229_ReadRegPartial1(void);
 extern uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte);
@@ -153,24 +153,16 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_LPUART1_UART_Init();
   MX_DMA_Init();
   MX_SPI3_Init();
-  MX_TIM1_Init();
+  MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
 	printf("Starting >> NUCLEO-G474RE_INA239-INA229 \n");
 
-	// Opto duty cycle by DMA
-	duty_cycle = 00; // div by 10
-	if (HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_1, (uint32_t *) &duty_cycle, 1) != HAL_OK)
+	if (HAL_UART_Receive_DMA(&hlpuart1, (uint8_t *)UartRxBuffer, 1) != HAL_OK)
 	{
-		/* PWM Generation Error */
-		while(1)
-		{
-			HAL_Delay(1000);
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		}
+		Error_Handler();
 	}
 
 	// reset everything
@@ -183,27 +175,25 @@ int main(void)
 		//		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
 	}
 
-	/* Wait for User push-button press before starting the Communication */
-	while (!button_pressed)
-	{
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(100);
-	}
-	button_pressed = 0; // reset button variable so can be used again
+//	/* Wait for User push-button press before starting the Communication */
+//	while (!button_pressed)
+//	{
+//		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//		HAL_Delay(100);
+//	}
+//	button_pressed = 0; // reset button variable so can be used again
 
-	VT_INA229_ReadAllReg();
-
-	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
-	{
-		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
-	}
+//	VT_INA229_ReadAllReg();
+//
+//	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
+//	{
+//		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
+//	}
 
 	// SPI DMA TX-RX
-	SPI_DMA_TXRX();
+//	SPI_DMA_TXRX();
 
 	//	HAL_SPI_DMAStop(&hspi3);
-
-	HAL_Delay(50);
 
 	//	VT_INA229_ReadRegPartial1();
 	//
@@ -213,10 +203,10 @@ int main(void)
 	//	}
 
 	// SPI DMA TX-RX
-	SPI_DMA_TXRX();
+//	SPI_DMA_TXRX();
 
 
-	printf("Ending >> NUCLEO-G474RE_INA239-INA229 \n");
+	printf("Ending   >> NUCLEO-G474RE_INA239-INA229 \n");
 
   /* USER CODE END 2 */
 
@@ -380,78 +370,6 @@ static void MX_SPI3_Init(void)
 }
 
 /**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM1_Init(void)
-{
-
-  /* USER CODE BEGIN TIM1_Init 0 */
-
-  /* USER CODE END TIM1_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
-
-  /* USER CODE BEGIN TIM1_Init 1 */
-
-  /* USER CODE END TIM1_Init 1 */
-  htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 16-1;
-  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 999;
-  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 0;
-  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-  sBreakDeadTimeConfig.BreakFilter = 0;
-  sBreakDeadTimeConfig.BreakAFMode = TIM_BREAK_AFMODE_INPUT;
-  sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
-  sBreakDeadTimeConfig.Break2Polarity = TIM_BREAK2POLARITY_HIGH;
-  sBreakDeadTimeConfig.Break2Filter = 0;
-  sBreakDeadTimeConfig.Break2AFMode = TIM_BREAK_AFMODE_INPUT;
-  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM1_Init 2 */
-
-  /* USER CODE END TIM1_Init 2 */
-  HAL_TIM_MspPostInit(&htim1);
-
-}
-
-/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -462,9 +380,6 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
@@ -490,14 +405,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|LD2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -505,25 +416,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA4 LD2_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|LD2_Pin;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PD2 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
@@ -565,33 +463,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	 */
 
 	button_pressed = 1;
-
-	//	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_8);
-	//
-	//	aTxBuffer[0] = (INA229_REG_DIAG_ALRT << 2) + 1;
-	//	aTxBuffer[1] = 0;
-	//	aTxBuffer[2] = 0;
-	//
-	//	switch (HAL_SPI_TransmitReceive_DMA(&hspi3, (uint8_t*) aTxBuffer, (uint8_t*) aRxBuffer, 3)) {
-	//	case HAL_OK:
-	//		/* Communication is completed ___________________________________________ */
-	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
-	//		//		HAL_Delay(500); // will cause hang
-	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
-	//		break;
-	//
-	//	case HAL_TIMEOUT:
-	//		/* An Error Occur ______________________________________________________ */
-	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
-	//		//		HAL_Delay(500);
-	//		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
-	//	case HAL_ERROR:
-	//		/* Call Timeout Handler */
-	//		Error_Handler();
-	//		break;
-	//	default:
-	//		break;
-	//	}
 
 }
 
@@ -718,7 +589,56 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	 */
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-	printf(" HAL_UART_RxCpltCallback \n");
+	printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+
+	switch(UartRxBuffer[0])
+	{
+	case 0x30: // 0
+		printf(" INA229 Reset - HAL_UART_RxCpltCallback \n");
+
+		break;
+	case 0x31: // 1
+		printf(" INA229 Read All - HAL_UART_RxCpltCallback \n");
+		VT_INA229_ReadAllReg();
+		break;
+	case 0x32:
+		printf(" VT_INA229_ReadRegPartial1 - HAL_UART_RxCpltCallback \n");
+		VT_INA229_ReadRegPartial1();
+		break;
+	case 0x33:
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x34:
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x35:
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x36:
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x37:
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x38:
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x39: // 9
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x61: // a
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x62: // b
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	case 0x63: // c
+		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);
+		break;
+	default: // None
+		printf(" No data found! \n");
+		break;
+	}
 
 }
 

@@ -10,7 +10,6 @@
 
 void VT_INA229_ReadAllReg(void);
 void VT_INA229_ReadRegPartial1(void);
-void VT_INA229_ReadRegPartial2(void);
 void VT_INA229_ReadReg(uint8_t Address);
 void VT_INA229_ReadReg_16(uint8_t Address);
 void VT_INA229_ReadReg_24(uint8_t Address);
@@ -41,4 +40,3 @@ uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mi
 #define INA229_REG_PWR_LIMIT         0x11  /*!< Power Over-Limit Threshold register */
 #define INA229_REG_MANUFACTURER_ID   0x3E  /*!< Manufacturer ID register */
 #define INA229_REG_DEVICE_ID         0x3F  /*!< Device ID register */
-
