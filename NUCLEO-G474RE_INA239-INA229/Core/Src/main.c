@@ -214,21 +214,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(500);
-		if (duty_cycle == 0)
-		{
-			duty_cycle_increase = 1; //duty_cycle + 10; // div by 10; // div by 10
-			HAL_Delay(4000);
-		}
-		if (duty_cycle == 1000)
-		{
-			duty_cycle_increase = 0;
-			HAL_Delay(4000);
-		}
-		if (duty_cycle_increase)
-			duty_cycle = duty_cycle + 10;
-		else
-			duty_cycle = duty_cycle - 10;
+		HAL_Delay(50);
 
     /* USER CODE END WHILE */
 
@@ -463,7 +449,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	 */
 
 	button_pressed = 1;
-
+	printf(" INA229 Read All - HAL_GPIO_EXTI_Callback \n");
+	VT_INA229_ReadAllReg();
+	SPI_DMA_TXRX();
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
@@ -600,10 +588,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	case 0x31: // 1
 		printf(" INA229 Read All - HAL_UART_RxCpltCallback \n");
 		VT_INA229_ReadAllReg();
+		SPI_DMA_TXRX();
 		break;
 	case 0x32:
 		printf(" VT_INA229_ReadRegPartial1 - HAL_UART_RxCpltCallback \n");
 		VT_INA229_ReadRegPartial1();
+		SPI_DMA_TXRX();
 		break;
 	case 0x33:
 		printf(" HAL_UART_RxCpltCallback = %x \n", UartRxBuffer[0]);

@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "VT_INA229.h"
+#include <stdio.h>
 
 extern void SPI_DMA_TXRX(void);
 
@@ -76,7 +77,7 @@ void VT_INA229_ReadAllReg(void)
 	VT_INA229_ReadReg(INA229_REG_PWR_LIMIT);
 	VT_INA229_ReadReg(INA229_REG_MANUFACTURER_ID);
 	VT_INA229_ReadReg(INA229_REG_DEVICE_ID);
-	SPI_DMA_TXRX();
+//	SPI_DMA_TXRX();
 }
 
 void VT_INA229_ReadRegPartial1(void)
@@ -96,7 +97,7 @@ void VT_INA229_ReadRegPartial1(void)
 	VT_INA229_ReadReg(INA229_REG_ENERGY);
 	VT_INA229_ReadReg(INA229_REG_CHARGE);
 	VT_INA229_ReadReg(INA229_REG_DIAG_ALRT);
-	SPI_DMA_TXRX();
+//	SPI_DMA_TXRX();
 }
 
 void VT_INA229_ReadReg(uint8_t Address)
@@ -131,6 +132,15 @@ void VT_INA229_ReadReg(uint8_t Address)
 
 }
 
+void VT_INA229_WriteReg_16(uint8_t Address, uint16_t data)
+{
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1;
+	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2);
+	INA229_send_packet[INA229_msg_lenght_cntr] = (uint8_t *) (data >> 8); // high byte
+	INA229_send_packet[INA229_msg_lenght_cntr] = (uint8_t *) data; // low byte
+	INA229_msg_lenght_cntr++; // increment cntr for data
+	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 2; // leave space for 16bit data
+}
 
 /*
 #define INA229_REG_CONFIG       	 0x00  !< Configuration Register
@@ -177,25 +187,4 @@ void VT_INA229_ReadReg_40(uint8_t Address)
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1;
 	INA229_msg_lenght_cntr++; // increment cntr for data
 	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 5; // leave space for 40bit data
-}
-
-void VT_INA229_WriteReg_16(uint8_t Address)
-{
-	INA229_msg_lenght_cntr++;
-	INA229_send_packet[INA229_msg_lenght_cntr] = Address;
-	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 2;
-}
-
-void VT_INA229_WriteReg_24(uint8_t Address)
-{
-	INA229_msg_lenght_cntr++;
-	INA229_send_packet[INA229_msg_lenght_cntr] = Address;
-	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 3;
-}
-
-void VT_INA229_WriteReg_40(uint8_t Address)
-{
-	INA229_msg_lenght_cntr++;
-	INA229_send_packet[INA229_msg_lenght_cntr] = Address;
-	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 5;
 }
