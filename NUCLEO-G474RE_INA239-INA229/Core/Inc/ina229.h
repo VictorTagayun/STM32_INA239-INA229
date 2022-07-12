@@ -126,6 +126,11 @@
 #define INA229_REG_DIETEMP_SIGN_Msk     (0x1U << INA229_REG_DIETEMP_SIGN_Pos)   /*!< 0x8000 */
 #define INA229_REG_DIETEMP_SIGN         INA229_REG_CURRENT_SIGN_Msk             /*!< Sign */
 
+/*****************  Bit definition for Diag Alert register  **********************/
+#define INA229_REG_DIAG_ALERT_ALATCH (1 << 15)
+#define INA229_REG_DIAG_ALERT_CNVR (1 << 14)
+#define INA229_REG_DIAG_ALERT_CNVRF (1 << 1)
+#define INA229_REG_DIAG_ALERT_MEMSTAT 1
 
 /** @defgroup INA229_MODE  INA229 operating mode
   * @{
@@ -136,10 +141,11 @@
 #define INA229_MODE_TRIGGERED_VTEMP   INA229_REG_ADC_CONFIG_MODE_2                             /*!< Bus voltage, Single shot conversion                   */
 #define INA229_MODE_TRIGGERED_VBUS_VSHUNT   (INA229_REG_ADC_CONFIG_MODE_1 | INA229_REG_ADC_CONFIG_MODE_0)                            /*!< Bus voltage, Single shot conversion                   */
 
-#define INA229_MODE_CONTINOUS_VSHUNT (INA229_REG_ADC_CONFIG_MODE_3 | INA229_REG_ADC_CONFIG_MODE_2 | INA229_REG_ADC_CONFIG_MODE_0)   /*!< Shunt Voltage, Continuous conversion                  */
+#define INA229_MODE_CONTINOUS_VSHUNT (0xa0 << 8)   /*!< Shunt Voltage, Continuous conversion                  */
 #define INA229_MODE_CONTINOUS_VBUS   (INA229_REG_ADC_CONFIG_MODE_3 | INA229_REG_ADC_CONFIG_MODE_2 | INA229_REG_ADC_CONFIG_MODE_1)   /*!< Bus voltage, Continuous conversion                    */
 #define INA229_MODE_CONTINOUS_VTEMP    (INA229_REG_ADC_CONFIG_MODE_3 | INA229_REG_ADC_CONFIG_MODE)                               /*!< Shunt Voltage and Bus voltage, Continuous conversion  */
-#define INA229_MODE_CONTINOUS_VBUS_VSHUNT   (INA229_REG_ADC_CONFIG_MODE_3 | INA229_REG_ADC_CONFIG_MODE_1 | INA229_REG_ADC_CONFIG_MODE_0)                            /*!< Bus voltage, Single shot conversion                   */
+#define INA229_MODE_CONTINOUS_VBUS_VSHUNT   (0xb0 << 8)
+#define INA229_MODE_CONTINOUS_VBUS_VSHUNT_TEMP (0xf0 << 8)
 
 /** @defgroup INA229_VBUSCT INA229 Vbus ADC conversion time
   * @{
