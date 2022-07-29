@@ -12,7 +12,7 @@
 extern void SPI_DMA_TXRX(void);
 
 // SPI transmit data
-uint8_t INA229_msg_lenght_cntr = 0, INA229_msg_lenght_cntr_old;
+uint8_t INA229_msg_lenght_cntr, INA229_msg_lenght_cntr_old, INA229_msg_lenght_cntr_repeat_previous;
 uint8_t INA229_send_packet[70], INA229_send_packet_decoder[70];
 uint8_t INA229_recv_packet[70], INA229_recv_packet_decoder[70];
 
@@ -56,7 +56,7 @@ void VT_INA229_ReadAllReg(void)
 {
 	//	printf("VT_INA229_ReadAllReg \n");
 	// reset msg cntr before constructing the message
-	INA229_msg_lenght_cntr = 0;
+	// INA229_msg_lenght_cntr = 0; // no need to reset, use VT_INA229_ResetVars() instead
 	VT_INA229_ReadReg(INA229_REG_CONFIG);
 	VT_INA229_ReadReg(INA229_REG_ADC_CONFIG);
 	VT_INA229_ReadReg(INA229_REG_SHUNT_CAL);
@@ -84,7 +84,7 @@ void VT_INA229_ReadRegPartial1(void)
 {
 	//	printf("VT_INA229_ReadRegPartial1 \n");
 	// reset msg cntr before constructing the message
-	INA229_msg_lenght_cntr = 0;
+	// INA229_msg_lenght_cntr = 0; // no need to reset, use VT_INA229_ResetVars() instead
 	VT_INA229_ReadReg(INA229_REG_CONFIG);
 	VT_INA229_ReadReg(INA229_REG_ADC_CONFIG);
 	VT_INA229_ReadReg(INA229_REG_SHUNT_CAL);
@@ -200,17 +200,9 @@ void INA229_Write_POWER_LIMIT(uint16_t data)
 
 void VT_INA229_ResetVars(void)
 {
-	// reset everything
-	//	for (uint8_t cntr = 0; cntr < INA229_msg_lenght_cntr; cntr++)
-	//	{
-	//		INA229_send_packet[cntr] = 0xff;
-	//		INA229_recv_packet[cntr] = 0xff;
-	//		INA229_send_packet_decoder[cntr] = 0;
-	//		INA229_recv_packet_decoder[cntr] = 0;
-	//		INA229_msg_lenght_cntr = 0;
-	//		//		printf("INA229_send_packet[%d] = %x \n", cntr , INA229_send_packet[cntr]);
-	//	}
-	INA229_msg_lenght_cntr_old = INA229_msg_lenght_cntr ;
+	// reset INA229_msg_lenght_cntr
+	INA229_msg_lenght_cntr_old = INA229_msg_lenght_cntr;
+	INA229_msg_lenght_cntr_repeat_previous = INA229_msg_lenght_cntr;
 	INA229_msg_lenght_cntr = 0;
 }
 
@@ -241,12 +233,14 @@ void VT_INA229_ReadReg_16(uint8_t Address)
 {
 	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1; // the address only, does not include Read/Write command
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command, increment INA229_msg_lenght_cntr for next byte
-	INA229_msg_lenght_cntr++; // increment cntr for dataH, increment INA229_msg_lenght_cntr for next byte
-	INA229_msg_lenght_cntr++; // increment cntr for dataL, increment INA229_msg_lenght_cntr for next byte
-	// original code below
-	//INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 2; // leave space for 24bit data
-	// modified
-	INA229_msg_lenght_cntr++; // increment cntr for next packet or start of address
+	// increment cntr for dataH, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataL, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for next packet or start of address
+	INA229_msg_lenght_cntr++;
 }
 
 /*
@@ -256,10 +250,28 @@ void VT_INA229_ReadReg_16(uint8_t Address)
 #define INA229_REG_POWER             0x08  !< Power Result register */
 void VT_INA229_ReadReg_24(uint8_t Address)
 {
+//	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1; // the address only, does not include Read/Write command
+//	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command, increment INA229_msg_lenght_cntr for next byte
+//	INA229_msg_lenght_cntr++; // increment cntr for data, increment INA229_msg_lenght_cntr for next byte
+//	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 3; // leave space for 24bit data, increment INA229_msg_lenght_cntr for next byte
+
+	printf("VT_INA229_ReadReg_24 \n");
 	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1; // the address only, does not include Read/Write command
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command, increment INA229_msg_lenght_cntr for next byte
-	INA229_msg_lenght_cntr++; // increment cntr for data, increment INA229_msg_lenght_cntr for next byte
-	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 3; // leave space for 24bit data, increment INA229_msg_lenght_cntr for next byte
+	// increment cntr for dataH, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataMid, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataL, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for next packet or start of address
+	INA229_msg_lenght_cntr++;
 }
 
 /*
@@ -267,8 +279,33 @@ void VT_INA229_ReadReg_24(uint8_t Address)
 #define INA229_REG_CHARGE            0x0A  !< Charge Result register */
 void VT_INA229_ReadReg_40(uint8_t Address)
 {
+//	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1; // the address only, does not include Read/Write command
+//	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command
+//	INA229_msg_lenght_cntr++; // increment cntr for data
+//	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 5; // leave space for 40bit data
+
 	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1; // the address only, does not include Read/Write command
-	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command
-	INA229_msg_lenght_cntr++; // increment cntr for data
-	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 5; // leave space for 40bit data
+	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command, increment INA229_msg_lenght_cntr for next byte
+	// increment cntr for dataHH, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataH, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataMid, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataL, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for dataLL, increment INA229_msg_lenght_cntr for next byte
+	INA229_msg_lenght_cntr++;
+	INA229_send_packet[INA229_msg_lenght_cntr] = 0;
+	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = 0;
+	// increment cntr for next packet or start of address
+	INA229_msg_lenght_cntr++;
 }

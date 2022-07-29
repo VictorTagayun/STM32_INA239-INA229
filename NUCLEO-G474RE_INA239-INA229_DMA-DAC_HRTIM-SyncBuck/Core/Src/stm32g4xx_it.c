@@ -47,6 +47,8 @@
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
 
+extern void VT_PID_Controller(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -204,20 +206,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles EXTI line2 interrupt.
-  */
-void EXTI2_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI2_IRQn 0 */
-
-  /* USER CODE END EXTI2_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
-  /* USER CODE BEGIN EXTI2_IRQn 1 */
-
-  /* USER CODE END EXTI2_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA1 channel1 global interrupt.
   */
 void DMA1_Channel1_IRQHandler(void)
@@ -287,11 +275,11 @@ void HRTIM1_Master_IRQHandler(void)
 	HRTIM1->sMasterRegs.MICR = misr; // clear all active interrupts
 	if(misr & HRTIM_MISR_MREP) {
 		//GPIOC->BSRR = (1<<11); // up
-//		CurrentPhase = VT_PID_Controller();
-//		//GPIOC->BSRR = (1<<27); // down +16
-//		HRTIM1->sMasterRegs.MCMP1R = CurrentPhase; // don't access the (hopefully) volatile global variable again
+		VT_PID_Controller();
+		//		//GPIOC->BSRR = (1<<27); // down +16
+		//		HRTIM1->sMasterRegs.MCMP1R = CurrentPhase; // don't access the (hopefully) volatile global variable again
 	}
-  GPIOB->BRR = (1<<9); // Reset
+	GPIOB->BRR = (1<<9); // Reset
   /* USER CODE END HRTIM1_Master_IRQn 1 */
 }
 
@@ -307,6 +295,20 @@ void LPUART1_IRQHandler(void)
   /* USER CODE BEGIN LPUART1_IRQn 1 */
 
   /* USER CODE END LPUART1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMAMUX overrun interrupt.
+  */
+void DMAMUX_OVR_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMAMUX_OVR_IRQn 0 */
+
+  /* USER CODE END DMAMUX_OVR_IRQn 0 */
+
+  /* USER CODE BEGIN DMAMUX_OVR_IRQn 1 */
+
+  /* USER CODE END DMAMUX_OVR_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
