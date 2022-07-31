@@ -20,7 +20,8 @@ uint16_t INA229_REG_CONFIG_val;
 uint16_t INA229_REG_ADC_CONFIG_val;
 uint16_t INA229_REG_SHUNT_CAL_val;
 uint16_t INA229_REG_SHUNT_TEMPCO_val;
-uint32_t INA229_REG_VSHUNT_val;
+//uint32_t INA229_REG_VSHUNT_val;
+int32_t INA229_REG_VSHUNT_val;
 uint32_t INA229_REG_VBUS_val;
 uint16_t INA229_REG_DIETEMP_val;
 uint32_t INA229_REG_CURRENT_val;
@@ -45,6 +46,16 @@ uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte)
 uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte)
 {
 	return (high_byte << 8*2) + (mid_byte << 8) + low_byte;
+}
+
+int32_t combine_3_bytes_to_signed_20bits(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte)
+{
+	int32_t val;
+	val = (high_byte << 8*2) + (mid_byte << 8) + low_byte;
+	val = val >> 4;
+	if (val > 0x7ffff)
+		val = val - 0xfffff - 1;
+	return val;
 }
 
 uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte)
@@ -255,7 +266,7 @@ void VT_INA229_ReadReg_24(uint8_t Address)
 //	INA229_msg_lenght_cntr++; // increment cntr for data, increment INA229_msg_lenght_cntr for next byte
 //	INA229_msg_lenght_cntr = INA229_msg_lenght_cntr + 3; // leave space for 24bit data, increment INA229_msg_lenght_cntr for next byte
 
-	printf("VT_INA229_ReadReg_24 \n");
+//	printf("VT_INA229_ReadReg_24 \n");
 	INA229_send_packet_decoder[INA229_msg_lenght_cntr] = Address  + 1; // the address only, does not include Read/Write command
 	INA229_send_packet[INA229_msg_lenght_cntr] = (Address << 2) + 1; // the address + Read "1" command, increment INA229_msg_lenght_cntr for next byte
 	// increment cntr for dataH, increment INA229_msg_lenght_cntr for next byte

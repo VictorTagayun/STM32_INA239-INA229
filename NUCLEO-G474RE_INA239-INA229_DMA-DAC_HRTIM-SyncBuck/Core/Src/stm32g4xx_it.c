@@ -47,7 +47,7 @@
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
 
-extern void VT_PID_Controller(void);
+extern void VT_SEND_SPI(void);
 
 /* USER CODE END PFP */
 
@@ -267,7 +267,7 @@ void EXTI15_10_IRQHandler(void)
 void HRTIM1_Master_IRQHandler(void)
 {
   /* USER CODE BEGIN HRTIM1_Master_IRQn 0 */
-	GPIOB->BSRR = (1<<9); // Set
+//	GPIOB->BSRR = (1<<9); // Set
   /* USER CODE END HRTIM1_Master_IRQn 0 */
   /* USER CODE BEGIN HRTIM1_Master_IRQn 1 */
 	int32_t misr;
@@ -275,11 +275,12 @@ void HRTIM1_Master_IRQHandler(void)
 	HRTIM1->sMasterRegs.MICR = misr; // clear all active interrupts
 	if(misr & HRTIM_MISR_MREP) {
 		//GPIOC->BSRR = (1<<11); // up
-		VT_PID_Controller();
+//		VT_PID_Controller();
+		VT_SEND_SPI();
 		//		//GPIOC->BSRR = (1<<27); // down +16
 		//		HRTIM1->sMasterRegs.MCMP1R = CurrentPhase; // don't access the (hopefully) volatile global variable again
 	}
-	GPIOB->BRR = (1<<9); // Reset
+//	GPIOB->BRR = (1<<9); // Reset
   /* USER CODE END HRTIM1_Master_IRQn 1 */
 }
 
@@ -295,20 +296,6 @@ void LPUART1_IRQHandler(void)
   /* USER CODE BEGIN LPUART1_IRQn 1 */
 
   /* USER CODE END LPUART1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles DMAMUX overrun interrupt.
-  */
-void DMAMUX_OVR_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMAMUX_OVR_IRQn 0 */
-
-  /* USER CODE END DMAMUX_OVR_IRQn 0 */
-
-  /* USER CODE BEGIN DMAMUX_OVR_IRQn 1 */
-
-  /* USER CODE END DMAMUX_OVR_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
