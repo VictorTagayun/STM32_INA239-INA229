@@ -47,7 +47,7 @@
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
 
-extern void VT_SEND_SPI(void);
+extern void VT_SEND_SPI_VSHUNT(void);
 
 /* USER CODE END PFP */
 
@@ -276,7 +276,7 @@ void HRTIM1_Master_IRQHandler(void)
 	if(misr & HRTIM_MISR_MREP) {
 		//GPIOC->BSRR = (1<<11); // up
 //		VT_PID_Controller();
-		VT_SEND_SPI();
+		VT_SEND_SPI_VSHUNT();
 		//		//GPIOC->BSRR = (1<<27); // down +16
 		//		HRTIM1->sMasterRegs.MCMP1R = CurrentPhase; // don't access the (hopefully) volatile global variable again
 	}

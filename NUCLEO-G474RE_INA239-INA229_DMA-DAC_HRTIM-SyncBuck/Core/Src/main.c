@@ -37,6 +37,16 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define MAX_PWM_COUNT 50000
+#define MAX_PWM_FB_COUNT 1000
+#define MIN_PWM_COUNT 35
+#define MIN_PWM_FB_COUNT 690
+#define SAT_LIMIT 1000
+#define Kp 128
+#define Ki 32
+#define Kd 1
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -108,8 +118,28 @@ volatile uint8_t HAL_SPI_TxRxCpltCallback_finished = 1, HAL_SPI_TxRxCpltCallback
 
 uint8_t INA239decodedAddress, INA239decodedReg, INA239decodedCommand;
 
+int32_t INA229_REG_VSHUNT_val_total = 0, INA229_REG_VSHUNT_val_ave = 0;
+int32_t INA229_REG_VSHUNT_val_data[1024] = {};
+uint16_t cntr_ave = 0;
+
+uint16_t TargetCurrent_mA_calc = 0, TargetCurrent_mA = 0, TargetCurrent_mA_old, TargetCurrent_mA_updated = 0;
+
+int32_t PWM_184nS_count_total = 0, PWM_184nS_count_ave = 0;
+int32_t PWM_184nS_count_data[1024] = {};
+uint16_t PWM_184nS_cntr_ave = 0;
+
+uint16_t PWM_184nS_count = 600, PWM_184nS_count_openloop = 600, PWM_184nS_count_new = 0, PWM_184nS_count_updated = 0;
+
+uint8_t close_loop = 0;
+
 // UART Variables
 uint8_t UartRxBuffer[1];
+
+// PID
+volatile int32_t seterr, pid_out, pid_out_last, pid_out_diff;
+volatile int32_t error, errorProp, errorIntgr, errorDiff;
+volatile int32_t last_error;
+
 
 /* USER CODE END PV */
 
@@ -126,18 +156,19 @@ static void MX_HRTIM1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
-void VT_SEND_SPI(void);
-void SPI_DMA_TXRX(void);
-void SPI_DMA_TXRX_printf(void);
-void SPI_DMA_TXRX_repeat_previous(void);
-void SPI_DMA_TXRX_repeat_previous_printf(void);
-void HAL_SPI_TxRxCpltCallback_printf(void);
+void VT_SEND_SPI_VSHUNT(void);
+void SPI_DMA_TX(void);
+void SPI_DMA_TX_printf(void);
+void SPI_DMA_TX_repeat_previous(void);
+void SPI_DMA_TX_repeat_previous_printf(void);
+void HAL_SPI_TxCpltCallback_printf(void);
 void VT_PID_Controller(void);
 extern void VT_INA229_ReadAllReg(void);
 extern void VT_INA229_ReadRegPartial1(void);
 extern void VT_INA229_ResetVars(void);
 extern uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte);
 extern uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
+extern int32_t combine_3_bytes_to_signed_20bits(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
 extern uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte);
 
 /* USER CODE END PFP */
@@ -187,11 +218,11 @@ int main(void)
 
 	printf("Starting >> NUCLEO-G474RE_INA239-INA229_DMA-DAC_HRTIM-SyncBuck \n");
 
-//	for(uint16_t cntr = 0; cntr < 10000; cntr++)
-//	{
-//		//		pulsating_sine[cntr] = pulsating_sine[cntr] - 4095;
-//		pulsating_sine[cntr] = 1000;
-//	}
+	//	for(uint16_t cntr = 0; cntr < 10000; cntr++)
+	//	{
+	//		//		pulsating_sine[cntr] = pulsating_sine[cntr] - 4095;
+	//		pulsating_sine[cntr] = 1000;
+	//	}
 
 	//	for(uint16_t cntr = 0; cntr < 10000; cntr++)
 	//	{
@@ -218,6 +249,8 @@ int main(void)
 
 	VT_INA229_ResetVars();
 
+	PWM_184nS_count_new = PWM_184nS_count;
+
 	//	HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1);
 	//	HAL_HRTIM_WaveformCountStart_IT(&hhrtim1, HRTIM_TIMERID_MASTER | HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B);
 
@@ -232,6 +265,12 @@ int main(void)
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		//		GPIOB->BSRR = (1<<9); // Set
 		HAL_Delay(100);
+
+		if(TargetCurrent_mA <= 50)
+			TargetCurrent_mA = 50;
+
+		TargetCurrent_mA_calc = TargetCurrent_mA << 4;
+
 		//		GPIOB->BRR = (1<<9); // Reset
 
     /* USER CODE END WHILE */
@@ -418,7 +457,7 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
   pTimeBaseCfg.Period = 54400;
-  pTimeBaseCfg.RepetitionCounter = 2;
+  pTimeBaseCfg.RepetitionCounter = 9;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg) != HAL_OK)
@@ -750,7 +789,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -772,8 +811,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  /*Configure GPIO pins : PB5 PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -787,20 +826,133 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void VT_SEND_SPI(void)
+__INLINE void VT_SEND_SPI_VSHUNT(void)
 {
 	GPIOB->BSRR = (1<<9); // Set
 	VT_INA229_ReadReg(INA229_REG_VSHUNT);
 	SPI_DMA_TX();
+
+	// averaging
+	INA229_REG_VSHUNT_val_total -= INA229_REG_VSHUNT_val_data[cntr_ave]; // very old data, previoud data need to be removed
+	INA229_REG_VSHUNT_val_data[cntr_ave] = INA229_REG_VSHUNT_val;
+	INA229_REG_VSHUNT_val_total += INA229_REG_VSHUNT_val;
+	INA229_REG_VSHUNT_val_ave = INA229_REG_VSHUNT_val_total >> 10;
+	cntr_ave = (cntr_ave + 1) & (1024 - 1); // counting from 0 - 511
+
+	VT_PID_Controller();
+
 	GPIOB->BRR = (1<<9); // Reset
 }
 
-void VT_PID_Controller(void)
+__INLINE void VT_PID_Controller(void)
 {
+	last_error = error;
+	error = TargetCurrent_mA_calc - INA229_REG_VSHUNT_val_ave;
+	//		error = INA229_REG_VSHUNT_val_ave - TargetCurrent_mA_calc;
+
+	// from fw
+	errorProp = (-Kp * error) >> 3;
+	errorIntgr = errorIntgr + ((Ki * error) >> 3);
+	errorDiff = error / Kd;
+
+	//		// used in ASM Phase Shift
+	//		errorProp = (Kp * error) >> 3;
+	//		errorIntgr = errorIntgr + ((Ki * error) >> 3);
+	//		errorDiff = error / Kd;
+
+//	// check if the change is so much to prevent oscillations, see below "pid_out_diff"
+//	pid_out_last = pid_out;
+//
+//	if (errorIntgr > SAT_LIMIT)
+//	{
+//		errorIntgr = SAT_LIMIT;
+//	}
+//	if (errorIntgr < -(SAT_LIMIT))
+//	{
+//		errorIntgr = -(SAT_LIMIT);
+//	}
+
+	// from FW
+	//		seterr = (-Kp * error) / 200;
+	//		Int_term_Buck = Int_term_Buck + ((-Ki * error) / 200);
+	//		pid_out = seterr + Int_term_Buck;
+
+
+	// My PID
+	pid_out =  errorProp;// + errorIntgr; // + errorDiff;
+
+	// check if the change is so much to prevent oscillations, see above "pid_out_last"
+	// pid_out_diff = pid_out - pid_out_last;
+
+	// this supposedly prevent sudden change in duty/phase
+	//	    if (pid_out_diff > MAX_DUTY_INC)
+	//	    {
+	//	    	pid_out += MAX_DUTY_INC;
+	//	    } else if (pid_out_diff > MAX_DUTY_INC)
+	//	    {
+	//	    	pid_out -= MAX_DUTY_INC;
+	//	    }
+
+	if (error > 50)
+		PWM_184nS_count++;
+	if (error < -50)
+		PWM_184nS_count--;
+
+	// averaging
+	PWM_184nS_count_total -= PWM_184nS_count_data[PWM_184nS_cntr_ave]; // very old data, previoud data need to be removed
+	PWM_184nS_count_data[PWM_184nS_cntr_ave] = PWM_184nS_count;
+	PWM_184nS_count_total += PWM_184nS_count;
+	PWM_184nS_count_ave = PWM_184nS_count_total >> 10;
+	PWM_184nS_cntr_ave = (PWM_184nS_cntr_ave + 1) & (1024 - 1); // counting from 0 - 511
+
+	if (PWM_184nS_count_ave >= MAX_PWM_FB_COUNT)
+	{
+		PWM_184nS_count_ave = MAX_PWM_FB_COUNT;
+	} else if (PWM_184nS_count_ave < MIN_PWM_FB_COUNT)
+	{
+		PWM_184nS_count_ave = MIN_PWM_FB_COUNT;
+	}
+
+	if (PWM_184nS_count >= MAX_PWM_FB_COUNT)
+	{
+		PWM_184nS_count = MAX_PWM_FB_COUNT;
+	} else if (PWM_184nS_count < MIN_PWM_FB_COUNT)
+	{
+		PWM_184nS_count = MIN_PWM_FB_COUNT;
+	}
+
+	if (close_loop) //calculated pwm;
+	{
+
+
+		//		PWM_184nS_count = pid_out;
+		//		PWM_184nS_count = 750;
+		PWM_184nS_count_new = PWM_184nS_count;
+		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = PWM_184nS_cntr_ave; // TimerA Compare 1
+		//		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = errorProp; // TimerA Compare 1
+	}
+	else // change PWM
+	{
+		if (PWM_184nS_count_openloop != PWM_184nS_count_new)
+		{
+			if (PWM_184nS_count_new >= 54400)
+				PWM_184nS_count_new = 50000;
+			if (PWM_184nS_count_new <= 32)
+				PWM_184nS_count_new = 32;
+
+			if (PWM_184nS_count_new > PWM_184nS_count_openloop)
+				PWM_184nS_count_openloop++;
+			if (PWM_184nS_count_new < PWM_184nS_count_openloop)
+				PWM_184nS_count_openloop--;
+		}
+
+		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = PWM_184nS_count_openloop; // TimerA Compare 1
+
+	}
 
 }
 
-void SPI_DMA_TX(void)
+__INLINE void SPI_DMA_TX(void)
 {
 	// do not print
 	HAL_SPI_TxRxCpltCallback_with_printf = 0;
@@ -835,7 +987,7 @@ void SPI_DMA_TX(void)
 
 }
 
-void SPI_DMA_TX_repeat_previous(void)
+__INLINE void SPI_DMA_TX_repeat_previous(void)
 {
 	// do not print
 	HAL_SPI_TxRxCpltCallback_with_printf = 0;
@@ -1016,7 +1168,7 @@ void SPI_DMA_TX_repeat_previous_printf(void)
 
 }
 
-void SPI_DMA_TX_printf(void)
+__INLINE void SPI_DMA_TX_printf(void)
 {
 
 	GPIOC->BSRR = (1<<8); // Set
@@ -1314,7 +1466,7 @@ void HAL_SPI_RxCpltCallback_printf()
 	GPIOC->BRR = (1<<6); // Reset
 }
 
-void HAL_SPI_RxCpltCallback_no_printf()
+__INLINE void HAL_SPI_RxCpltCallback_no_printf()
 {
 	GPIOC->BSRR = (1<<6); // Set
 
@@ -1324,88 +1476,88 @@ void HAL_SPI_RxCpltCallback_no_printf()
 		if (INA229_send_packet_decoder[cntr] != 0) // decode
 		{
 			INA229_decodedAddress = INA229_send_packet_decoder[cntr] - 1;
-//			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
+			//			printf("INA229_send_packet_decoder[%d] = %x \n", cntr , INA229_decodedAddress);
 			switch(INA229_decodedAddress)
 			{
 			case INA229_REG_CONFIG: // 00h, 2 bytes
 				INA229_REG_CONFIG_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_CONFIG_val = %x \n", INA229_REG_CONFIG_val);
+				//				printf("INA229_REG_CONFIG_val = %x \n", INA229_REG_CONFIG_val);
 				break;
 			case INA229_REG_ADC_CONFIG: // 01h, 2 bytes
 				INA229_REG_ADC_CONFIG_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_ADC_CONFIG_val = %x \n", INA229_REG_ADC_CONFIG_val);
+				//				printf("INA229_REG_ADC_CONFIG_val = %x \n", INA229_REG_ADC_CONFIG_val);
 				break;
 			case INA229_REG_SHUNT_CAL: // 02h, 2 bytes
 				INA229_REG_SHUNT_CAL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_SHUNT_CAL_val = %x \n", INA229_REG_SHUNT_CAL_val);
+				//				printf("INA229_REG_SHUNT_CAL_val = %x \n", INA229_REG_SHUNT_CAL_val);
 				break;
 			case INA229_REG_SHUNT_TEMPCO: // 03h, 2 bytes
 				INA229_REG_SHUNT_TEMPCO_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_SHUNT_TEMPCO_val = %x \n", INA229_REG_SHUNT_TEMPCO_val);
+				//				printf("INA229_REG_SHUNT_TEMPCO_val = %x \n", INA229_REG_SHUNT_TEMPCO_val);
 				break;
 			case INA229_REG_VSHUNT: // 04h, 3 bytes
 				INA229_REG_VSHUNT_val = combine_3_bytes_to_signed_20bits(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
-//				printf("INA229_REG_VSHUNT_val = %x \n", INA229_REG_VSHUNT_val);
+				//				printf("INA229_REG_VSHUNT_val = %x \n", INA229_REG_VSHUNT_val);
 				break;
 			case INA229_REG_VBUS: // 05h, 3 bytes
 				INA229_REG_VBUS_val = combine_3_bytes_to_signed_20bits(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
-//				printf("INA229_REG_VBUS_val = %x \n", INA229_REG_VBUS_val);
+				//				printf("INA229_REG_VBUS_val = %x \n", INA229_REG_VBUS_val);
 				break;
 			case INA229_REG_DIETEMP: //06h, 2 bytes
 				INA229_REG_DIETEMP_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_DIETEMP_val = %x \n", INA229_REG_DIETEMP_val);
+				//				printf("INA229_REG_DIETEMP_val = %x \n", INA229_REG_DIETEMP_val);
 				break;
 			case INA229_REG_CURRENT: // 07h, 3 bytes
 				INA229_REG_CURRENT_val = combine_3_bytes_to_signed_20bits(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
-//				printf("INA229_REG_CURRENT_val = %x \n", INA229_REG_CURRENT_val);
+				//				printf("INA229_REG_CURRENT_val = %x \n", INA229_REG_CURRENT_val);
 				break;
 			case INA229_REG_POWER: // 08h, 3 bytes
 				INA229_REG_POWER_val = combine_3_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3]);
-//				printf("INA229_REG_POWER_val = %x \n", INA229_REG_POWER_val);
+				//				printf("INA229_REG_POWER_val = %x \n", INA229_REG_POWER_val);
 				break;
 			case INA229_REG_ENERGY: // 09h, 5 bytes
 				INA229_REG_ENERGY_val = combine_5_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3], INA229_recv_packet[cntr + 4], INA229_recv_packet[cntr + 5]);
-//				printf("INA229_REG_ENERGY_val = %x%08x \n", INA229_REG_ENERGY_val);
+				//				printf("INA229_REG_ENERGY_val = %x%08x \n", INA229_REG_ENERGY_val);
 				break;
 			case INA229_REG_CHARGE: // 0ah, 5 bytes
 				INA229_REG_CHARGE_val = combine_5_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2], INA229_recv_packet[cntr + 3], INA229_recv_packet[cntr + 4], INA229_recv_packet[cntr + 5]);
-//				printf("INA229_REG_CHARGE_val = %x%08x \n", INA229_REG_CHARGE_val);
+				//				printf("INA229_REG_CHARGE_val = %x%08x \n", INA229_REG_CHARGE_val);
 				break;
 			case INA229_REG_DIAG_ALRT: // 0bh
 				INA229_REG_DIAG_ALRT_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_DIAG_ALRT_val = %x \n", INA229_REG_DIAG_ALRT_val);
+				//				printf("INA229_REG_DIAG_ALRT_val = %x \n", INA229_REG_DIAG_ALRT_val);
 				break;
 			case INA229_REG_SOVL: // 0ch
 				INA229_REG_SOVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_SOVL_val = %x \n", INA229_REG_SOVL_val);
+				//				printf("INA229_REG_SOVL_val = %x \n", INA229_REG_SOVL_val);
 				break;
 			case INA229_REG_SUVL:
 				INA229_REG_SUVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_SUVL_val = %x \n", INA229_REG_SUVL_val);
+				//				printf("INA229_REG_SUVL_val = %x \n", INA229_REG_SUVL_val);
 				break;
 			case INA229_REG_BOVL:
 				INA229_REG_BOVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_BOVL_val = %x \n", INA229_REG_BOVL_val);
+				//				printf("INA229_REG_BOVL_val = %x \n", INA229_REG_BOVL_val);
 				break;
 			case INA229_REG_BUVL:
 				INA229_REG_BUVL_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_BUVL_val = %x \n", INA229_REG_BUVL_val);
+				//				printf("INA229_REG_BUVL_val = %x \n", INA229_REG_BUVL_val);
 				break;
 			case INA229_REG_TEMP_LIMIT:
 				INA229_REG_TEMP_LIMIT_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_TEMP_LIMIT_val = %x \n", INA229_REG_TEMP_LIMIT_val);
+				//				printf("INA229_REG_TEMP_LIMIT_val = %x \n", INA229_REG_TEMP_LIMIT_val);
 				break;
 			case INA229_REG_PWR_LIMIT:
 				INA229_REG_PWR_LIMIT_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_PWR_LIMIT_val = %x \n", INA229_REG_PWR_LIMIT_val);
+				//				printf("INA229_REG_PWR_LIMIT_val = %x \n", INA229_REG_PWR_LIMIT_val);
 				break;
 			case INA229_REG_MANUFACTURER_ID:
 				INA229_REG_MANUFACTURER_ID_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_MANUFACTURER_ID_val = %x \n", INA229_REG_MANUFACTURER_ID_val);
+				//				printf("INA229_REG_MANUFACTURER_ID_val = %x \n", INA229_REG_MANUFACTURER_ID_val);
 				break;
 			case INA229_REG_DEVICE_ID:
 				INA229_REG_DEVICE_ID_val = combine_2_bytes(INA229_recv_packet[cntr + 1], INA229_recv_packet[cntr + 2]);
-//				printf("INA229_REG_DEVICE_ID_val = %x \n", INA229_REG_DEVICE_ID_val);
+				//				printf("INA229_REG_DEVICE_ID_val = %x \n", INA229_REG_DEVICE_ID_val);
 				break;
 			default:
 				break;
@@ -1414,7 +1566,7 @@ void HAL_SPI_RxCpltCallback_no_printf()
 
 		} else
 		{
-//			printf("INA229_recv_packet[%d] = %x \n", cntr , INA229_recv_packet[cntr]);
+			//			printf("INA229_recv_packet[%d] = %x \n", cntr , INA229_recv_packet[cntr]);
 		}
 	}
 
@@ -1475,7 +1627,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 		break;
 	case 0x39: // 9
-
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, SET);
 		break;
 	case 0x61: // a
 		HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1);
@@ -1490,7 +1642,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		SPI_DMA_TX_printf();
 		break;
 	case 0x64: // d
-		INA229_Write_ADC_CONFIG(INA229_MODE_CONTINOUS_VSHUNT | INA229_VBUSCT_50 | INA229_VSHCT_50 | INA229_VTCT_50 | INA229_AVG_1);
+		INA229_Write_ADC_CONFIG(INA229_MODE_CONTINOUS_VSHUNT | INA229_VBUSCT_50 | INA229_VSHCT_50 | INA229_VTCT_50 | INA229_AVG_1024);
 		SPI_DMA_TX_printf();
 		break;
 	case 0x65: // e
@@ -1501,7 +1653,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		SPI_DMA_TX_repeat_previous_printf();
 		break;
 	case 0x67: // g
-		VT_SEND_SPI();
+		VT_SEND_SPI_VSHUNT();
 		break;
 	default: // None
 		printf("No data found! \n");

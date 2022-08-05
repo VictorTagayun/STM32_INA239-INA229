@@ -16,6 +16,11 @@ void VT_INA229_ReadReg_24(uint8_t Address);
 void VT_INA229_ReadReg_40(uint8_t Address);
 void VT_INA229_ResetVars(void);
 
+uint16_t combine_2_bytes(uint16_t high_byte, uint16_t low_byte);
+uint32_t combine_3_bytes(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
+int32_t combine_3_bytes_to_signed_20bits(uint32_t high_byte, uint32_t mid_byte, uint32_t low_byte);
+uint64_t combine_5_bytes(uint64_t highhigh_byte, uint64_t high_byte, uint64_t mid_byte, uint64_t low_byte, uint64_t lowlow_byte);
+
 void VT_INA229_WriteReg_16(uint8_t Address, uint16_t data);
 void INA229_Write_CONFIG(uint16_t data);
 void INA229_Write_ADC_CONFIG(uint16_t data);
