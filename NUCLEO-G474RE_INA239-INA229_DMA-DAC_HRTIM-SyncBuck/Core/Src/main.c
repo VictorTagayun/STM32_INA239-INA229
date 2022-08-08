@@ -39,9 +39,9 @@
 /* USER CODE BEGIN PD */
 
 #define MAX_PWM_COUNT 50000
-#define MAX_PWM_FB_COUNT 1000
+#define MAX_PWM_FB_COUNT 10000
 #define MIN_PWM_COUNT 35
-#define MIN_PWM_FB_COUNT 690
+#define MIN_PWM_FB_COUNT 700
 #define SAT_LIMIT 1000
 #define Kp 128
 #define Ki 32
@@ -137,7 +137,7 @@ uint8_t UartRxBuffer[1];
 
 // PID
 volatile int32_t seterr, pid_out, pid_out_last, pid_out_diff;
-volatile int32_t error, errorProp, errorIntgr, errorDiff;
+volatile int32_t error, errorProp, errorIntgr, errorDiff, error_cntr;
 volatile int32_t last_error;
 
 
@@ -266,8 +266,8 @@ int main(void)
 		//		GPIOB->BSRR = (1<<9); // Set
 		HAL_Delay(100);
 
-		if(TargetCurrent_mA <= 50)
-			TargetCurrent_mA = 50;
+		if(TargetCurrent_mA <= 55)
+			TargetCurrent_mA = 55;
 
 		TargetCurrent_mA_calc = TargetCurrent_mA << 4;
 
@@ -457,7 +457,7 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
   pTimeBaseCfg.Period = 54400;
-  pTimeBaseCfg.RepetitionCounter = 9;
+  pTimeBaseCfg.RepetitionCounter = 3;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg) != HAL_OK)
@@ -846,9 +846,9 @@ __INLINE void VT_SEND_SPI_VSHUNT(void)
 
 __INLINE void VT_PID_Controller(void)
 {
+
 	last_error = error;
 	error = TargetCurrent_mA_calc - INA229_REG_VSHUNT_val_ave;
-	//		error = INA229_REG_VSHUNT_val_ave - TargetCurrent_mA_calc;
 
 	// from fw
 	errorProp = (-Kp * error) >> 3;
@@ -860,17 +860,17 @@ __INLINE void VT_PID_Controller(void)
 	//		errorIntgr = errorIntgr + ((Ki * error) >> 3);
 	//		errorDiff = error / Kd;
 
-//	// check if the change is so much to prevent oscillations, see below "pid_out_diff"
-//	pid_out_last = pid_out;
-//
-//	if (errorIntgr > SAT_LIMIT)
-//	{
-//		errorIntgr = SAT_LIMIT;
-//	}
-//	if (errorIntgr < -(SAT_LIMIT))
-//	{
-//		errorIntgr = -(SAT_LIMIT);
-//	}
+	//	// check if the change is so much to prevent oscillations, see below "pid_out_diff"
+	//	pid_out_last = pid_out;
+	//
+	//	if (errorIntgr > SAT_LIMIT)
+	//	{
+	//		errorIntgr = SAT_LIMIT;
+	//	}
+	//	if (errorIntgr < -(SAT_LIMIT))
+	//	{
+	//		errorIntgr = -(SAT_LIMIT);
+	//	}
 
 	// from FW
 	//		seterr = (-Kp * error) / 200;
@@ -893,43 +893,54 @@ __INLINE void VT_PID_Controller(void)
 	//	    	pid_out -= MAX_DUTY_INC;
 	//	    }
 
-	if (error > 50)
-		PWM_184nS_count++;
-	if (error < -50)
-		PWM_184nS_count--;
 
-	// averaging
-	PWM_184nS_count_total -= PWM_184nS_count_data[PWM_184nS_cntr_ave]; // very old data, previoud data need to be removed
-	PWM_184nS_count_data[PWM_184nS_cntr_ave] = PWM_184nS_count;
-	PWM_184nS_count_total += PWM_184nS_count;
-	PWM_184nS_count_ave = PWM_184nS_count_total >> 10;
-	PWM_184nS_cntr_ave = (PWM_184nS_cntr_ave + 1) & (1024 - 1); // counting from 0 - 511
 
-	if (PWM_184nS_count_ave >= MAX_PWM_FB_COUNT)
-	{
-		PWM_184nS_count_ave = MAX_PWM_FB_COUNT;
-	} else if (PWM_184nS_count_ave < MIN_PWM_FB_COUNT)
-	{
-		PWM_184nS_count_ave = MIN_PWM_FB_COUNT;
-	}
+	//	// averaging of PID/PWM
+	//	PWM_184nS_count_total -= PWM_184nS_count_data[PWM_184nS_cntr_ave]; // very old data, previoud data need to be removed
+	//	PWM_184nS_count_data[PWM_184nS_cntr_ave] = PWM_184nS_count;
+	//	PWM_184nS_count_total += PWM_184nS_count;
+	//	PWM_184nS_count_ave = PWM_184nS_count_total >> 10;
+	//	PWM_184nS_cntr_ave = (PWM_184nS_cntr_ave + 1) & (1024 - 1); // counting from 0 - 511
+	//
+	//	if (PWM_184nS_count_ave >= MAX_PWM_FB_COUNT)
+	//	{
+	//		PWM_184nS_count_ave = MAX_PWM_FB_COUNT;
+	//	} else if (PWM_184nS_count_ave < MIN_PWM_FB_COUNT)
+	//	{
+	//		PWM_184nS_count_ave = MIN_PWM_FB_COUNT;
+	//	}
+	//
 
-	if (PWM_184nS_count >= MAX_PWM_FB_COUNT)
-	{
-		PWM_184nS_count = MAX_PWM_FB_COUNT;
-	} else if (PWM_184nS_count < MIN_PWM_FB_COUNT)
-	{
-		PWM_184nS_count = MIN_PWM_FB_COUNT;
-	}
+
 
 	if (close_loop) //calculated pwm;
 	{
+		if (error > 30)
+			error_cntr++;
+		if (error < -30)
+			error_cntr--;
 
+		if (error_cntr > 70)
+		{
+			PWM_184nS_count++;
+			error_cntr = 0;
+		}
+		if (error_cntr < -70)
+		{
+			PWM_184nS_count--;
+			error_cntr = 0;
+		}
 
-		//		PWM_184nS_count = pid_out;
-		//		PWM_184nS_count = 750;
+		if (PWM_184nS_count >= MAX_PWM_FB_COUNT)
+		{
+			PWM_184nS_count = MAX_PWM_FB_COUNT;
+		} else if (PWM_184nS_count < MIN_PWM_FB_COUNT)
+		{
+			PWM_184nS_count = MIN_PWM_FB_COUNT;
+		}
+
 		PWM_184nS_count_new = PWM_184nS_count;
-		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = PWM_184nS_cntr_ave; // TimerA Compare 1
-		//		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = errorProp; // TimerA Compare 1
+		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = PWM_184nS_count; // TimerA Compare 1
 	}
 	else // change PWM
 	{
@@ -945,9 +956,9 @@ __INLINE void VT_PID_Controller(void)
 			if (PWM_184nS_count_new < PWM_184nS_count_openloop)
 				PWM_184nS_count_openloop--;
 		}
-
+		error_cntr = 0;
 		HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].CMP1xR = PWM_184nS_count_openloop; // TimerA Compare 1
-
+		PWM_184nS_count = PWM_184nS_count_openloop; // so the close loop will start where open loop stopped
 	}
 
 }
@@ -1642,7 +1653,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		SPI_DMA_TX_printf();
 		break;
 	case 0x64: // d
-		INA229_Write_ADC_CONFIG(INA229_MODE_CONTINOUS_VSHUNT | INA229_VBUSCT_50 | INA229_VSHCT_50 | INA229_VTCT_50 | INA229_AVG_1024);
+		INA229_Write_ADC_CONFIG(INA229_MODE_CONTINOUS_VSHUNT | INA229_VBUSCT_50 | INA229_VSHCT_50 | INA229_VTCT_50 | INA229_AVG_1);
 		SPI_DMA_TX_printf();
 		break;
 	case 0x65: // e
