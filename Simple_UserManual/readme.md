@@ -12,7 +12,6 @@ __Vin__ = 12V
 __Rload__ = 0.5 ohms   
 __MCU__ = ST Micro   
 __Mofset driver__ = IR2110 https://www.infineon.com/dgdl/Infineon-IR2110-DataSheet-v01_00-EN.pdf?fileId=5546d462533600a4015355c80333167e   
-__Mofset driver__ = IR2110 <a href="https://www.infineon.com/dgdl/Infineon-IR2110-DataSheet-v01_00-EN.pdf?fileId=5546d462533600a4015355c80333167e" a>     
 __Current Sensor__ = INA229EVM https://www.ti.com/tool/INA229_239EVM   
 __Fsw__ = 100kHz or 10uS period
 
