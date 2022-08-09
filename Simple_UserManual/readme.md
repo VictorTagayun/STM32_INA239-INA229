@@ -101,7 +101,7 @@ Further Improvements in the GUI datalogger and Firmware. But these improvements 
 more interesting things at [https://victortagayun.github.io](https://victortagayun.github.io)
 
 *Disclaimer:*
-[See Updated Disclaimer in case disclamer below is outdated](https://github.com/VictorTagayun/GlobalDisclaimer)
+[See Updated "Global Disclaimer" in case disclamer below is outdated](https://github.com/VictorTagayun/GlobalDisclaimer)
 
 *The projects posted here are for my Personal reference, learning and educational purposes only.*
 *The purpose of a certain project may be for testing a module and may be just a part of a whole project.*
