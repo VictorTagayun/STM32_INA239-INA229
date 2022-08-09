@@ -4,8 +4,8 @@ You probably clicked the Simple User Manual, so you got here, just like what is 
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01-01.png)
 
-This is the user guide for controllimg the Digital Constant Current SMPS.
-This is a POC (Proof Of Concept) design stage.
+This is the user manual/guide for controllimg the Digital Constant Current SMPS.   
+This is a __*POC*__ (Proof Of Concept) design stage.
 
  ## Hardware setup   
 __Vin__ = 12V   
@@ -17,7 +17,7 @@ __Fsw__ = 100kHz or 10uS period
 
 
 ## Key fratures and limitation   
-__1A max__ = heat dissipation limitation   
+__1A max__ = due to heat dissipation limitation   
 __55mA min__ = control algorithm still a work in progress   
 __10-20secs response time__ = need to improve control algorithm, but not needed in this POC (proof of concept) as the control engineers are *"more"* responsible about it
 
@@ -35,15 +35,18 @@ a. Close and Open the loop
 b. Program and change the pwm Ton count (184nS) and   
 c. Program and change the desired output constant current  
 
+
 ### Overview of Advanced tab
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02.png)
+
 
 ### Start/Stop Aquisition
 
 This will start and stop the aquisition but will not stop the operation of the digital smps
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-StartStop.png)
+
 
 ### Write
 
@@ -55,6 +58,7 @@ __TargetCurrent__ = desired output current in mA
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-Write.png)
 
+
 ### Graphs
 
 __Left Graph__ = mainly to view the output current in mA. But other variables are also shown. You can add or remove other variables by clicking the name of the variables as shown below
@@ -64,6 +68,7 @@ __Left Graph__ = mainly to view the output current in mA. But other variables ar
 __Right Graph__ = other variables for "my" monitoring and troubleshooting
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-RightGraph.png)
+
 
 ## Simple Operation
 
@@ -89,12 +94,16 @@ Further Improvements in the GUI datalogger and Firmware. But these improvements 
 3. Improve the response time if possible
 4. Program current to below 55mA
 
+
 # THANKS and give feedback if possible
 
-more interesting things at https://victortagayun.github.io
 
-disclaimer
+more interesting things at [https://victortagayun.github.io]([https://victortagayun.github.io)
 
+*Disclaimer:*
+[See Updated Disclaimer in case disclamer below is outdated](https://github.com/VictorTagayun/GlobalDisclaimer)
 
-
-
+*The projects posted here are for my Personal reference, learning and educational purposes only.*
+*The purpose of a certain project may be for testing a module and may be just a part of a whole project.*
+*It should not be used in a production or commercial environment.*
+*Any cause of injury and/or death is the sole responsibility of the user.*
