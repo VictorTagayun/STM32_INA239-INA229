@@ -1,6 +1,6 @@
 # User Guide for Digital Constant Current SMPS 
 
-You probably clicked the user guide, so u got here, just like what is shown below.
+You probably clicked the Simple User Manual, so you got here, just like what is shown below.
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01-01.png)
 
@@ -23,11 +23,11 @@ __10-20secs response time__ = need to improve control algorithm, but not needed 
 
 __*POC is to show or prove if the hardware can meet minimum requrements.*__
 
-## User Guide
+## User Manual/Guide
 
 To control the Digital SMPS, you need to click the three lines (red box) so the tabs menu will show (green box), then click on "Advanced" tab, as shown below.
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01-02.png)
 
 __Basic Tab__ = just to view the parameter and You cannot control anything   
 __Advanced Tab__ = you will be able to:   
@@ -37,13 +37,13 @@ c. Program and change the desired output constant current
 
 ### Overview of Advanced tab
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02.png)
 
 ### Start/Stop Aquisition
 
 This will start and stop the aquisition but will not stop the operation of the digital smps
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-StartStop.png)
 
 ### Write
 
@@ -53,15 +53,17 @@ __close_loop__ = accepts values 0 or on-zero number. O means open loop. Non-zero
 __PWM_184nS__ = 1 count is 182ps of 10us period, maximum count is 54000, but it limited to 20000 at the moment in the firmware   
 __TargetCurrent__ = desired output current in mA   
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-Write.png)
 
 ### Graphs
 
 __Left Graph__ = mainly to view the output current in mA. But other variables are also shown. You can add or remove other variables by clicking the name of the variables as shown below
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-LeftGraph.png)
 
 __Right Graph__ = other variables for "my" monitoring and troubleshooting
+
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-RightGraph.png)
 
 ## Simple Operation
 
@@ -71,11 +73,13 @@ Operation is mostly confined with:
 
 It is advisable to un-check all variables first as shown below. IT is not neccesarry to click the "WRITE" button at this time.
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/03-Uncheck.png)
 
 You may change the PWM Ton, by enreting values for __PWM_184nS__, values should be within 700 - 4000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside 700 to 4000 is entered, the Firmware will take care. This operation should be open loop and is the default state. After entering the number, click "WRITE" button.
 
 To close the loop (__PWM_184nS__, will no longer take effect), enter 1 to __close_loop__ and click "WRITE" button. You may enter the target current (mA) in __TargetCurrent__. After entering the number, click "WRITE" button.
+
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/04-Closeloop.png)
 
 __*Note*__ : You may enter __close_loop__ and __TargetCurrent__ simultaneously, then click "WRITE" button.
 
