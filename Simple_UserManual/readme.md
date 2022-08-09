@@ -2,7 +2,7 @@
 
 You probably clicked the user guide, so u got here, just like what is shown below.
 
-https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01.png
+![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01-01.png)
 
 This is the user guide for controllimg the Digital Constant Current SMPS.
 This is a POC (Proof Of Concept) design stage.
