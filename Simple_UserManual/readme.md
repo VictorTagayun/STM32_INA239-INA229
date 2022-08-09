@@ -32,7 +32,7 @@ To control the Digital SMPS, you need to click the three lines (red box) so the 
 __Basic Tab__ = just to view the parameter and You cannot control anything   
 __Advanced Tab__ = you will be able to:   
 a. Close and Open the loop   
-b. Program and change the pwm Ton count (184nS) and   
+b. Program and change the pwm Ton count (1 count = 184nS) and   
 c. Program and change the desired output constant current  
 
 
@@ -50,18 +50,18 @@ This will start and stop the aquisition but will not stop the operation of the d
 
 ### Write
 
-You can write values to variables in the Fiwmware simultaneously or individually whenever those variables are checked or unchecked. After entering the number click on the "WRITE" button
+You can write values to variables in the Firmware simultaneously or individually whenever those variables are checked or unchecked. After entering the number click on the "WRITE" button
 
-__close_loop__ = accepts values 0 or on-zero number. O means open loop. Non-zero means close loop, generally write 1   
+__close_loop__ = accepts values 0 or on-zero number. 0 means open loop. Non-zero means close loop, generally write 1   
 __PWM_184nS__ = 1 count is 182ps of 10us period, maximum count is 54000, but it limited to 20000 at the moment in the firmware   
-__TargetCurrent__ = desired output current in mA   
+__TargetCurrent__ = desired or target output current in mA   
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-Write.png)
 
 
 ### Graphs
 
-__Left Graph__ = mainly to view the output current in mA. But other variables are also shown. You can add or remove other variables by clicking the name of the variables as shown below
+__Left Graph__ = mainly to view the output current in mA. But other variables are also shown. You can add or remove other variables by clicking the name of the variables below the graphs as shown below
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02-LeftGraph.png)
 
@@ -80,7 +80,7 @@ It is advisable to un-check all variables first as shown below. IT is not necces
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/03-Uncheck.png)
 
-You may change the PWM Ton, by enreting values for __PWM_184nS__, values should be within 700 - 4000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside 700 to 4000 is entered, the Firmware will take care. This operation should be open loop and is the default state. After entering the number, click "WRITE" button.
+You may change the PWM Ton, by checking its left checkbox and entering values for __PWM_184nS__, values should be within 700 - 4000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside 700 to 4000 is entered, the Firmware will take care and limit its value. This operation should be open loop and is the default state. After entering the number, click "WRITE" button.
 
 To close the loop (__PWM_184nS__, will no longer take effect), enter 1 to __close_loop__ and click "WRITE" button. You may enter the target current (mA) in __TargetCurrent__. After entering the number, click "WRITE" button.
 
