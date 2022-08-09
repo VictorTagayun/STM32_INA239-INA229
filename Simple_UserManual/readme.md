@@ -98,7 +98,7 @@ Further Improvements in the GUI datalogger and Firmware. But these improvements 
 # THANKS and give feedback if possible
 
 
-more interesting things at [https://victortagayun.github.io]([https://victortagayun.github.io)
+more interesting things at [https://victortagayun.github.io](https://victortagayun.github.io)
 
 *Disclaimer:*
 [See Updated Disclaimer in case disclamer below is outdated](https://github.com/VictorTagayun/GlobalDisclaimer)
