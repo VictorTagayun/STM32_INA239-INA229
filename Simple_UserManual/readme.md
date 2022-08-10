@@ -30,7 +30,7 @@ To control the Digital SMPS, you need to click the three lines (red box) so the 
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01-02.png)
 
-__Basic Tab__ = just to view the parameter and You cannot control anything   
+__Basic Tab__ = just to view the Firmware variables/parameter and You cannot control anything   
 __Advanced Tab__ = you will be able to:   
 a. Close and Open the loop   
 b. Program and change the pwm Ton count (1 count = 184nS) and   
