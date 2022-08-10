@@ -20,7 +20,7 @@ __Topology__ = Syncronous Buck Conveter (non-isolated)
 ## Key features and limitation   
 __1A max__ = due to heat dissipation limitation   
 __55mA min__ = control algorithm still a work in progress   
-__10-20secs response time__ = need to improve control algorithm, but not needed in this POC (proof of concept) as the control engineers are *"more"* responsible about it
+__10-20secs response time__ = need to improve control algorithm, but not needed in this __POC__ (proof of concept) as the control engineers are *"more"* responsible about it
 
 __*POC is to show or prove if the hardware can meet minimum requrements.*__
 
