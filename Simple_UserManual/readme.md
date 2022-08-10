@@ -80,7 +80,7 @@ It is advisable to un-check all variables first as shown below. IT is not necces
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/03-Uncheck.png)
 
-You may change the PWM Ton, by checking its left checkbox and entering values for __PWM_184nS__, values should be within 700 - 4000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside 700 to 4000 is entered, the Firmware will take care and limit its value. This operation should be open loop and is the default state. After entering the number, click "WRITE" button.
+You may change the PWM Ton, by checking its left checkbox and entering values for __PWM_184nS__, values should be within 32 - 50000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside 32 to 50000 is entered, the Firmware will take care and limit its value. This operation should be open loop and is the default state. After entering the number, click "WRITE" button.
 
 To close the loop (__PWM_184nS__, will no longer take effect), enter 1 to __close_loop__ and click "WRITE" button. You may enter the target current (mA) in __TargetCurrent__. After entering the number, click "WRITE" button.
 
