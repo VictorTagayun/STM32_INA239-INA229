@@ -13,7 +13,8 @@ __Rload__ = 0.5 ohms
 __MCU__ = ST Micro   
 __Mofset driver__ = IR2110 https://www.infineon.com/dgdl/Infineon-IR2110-DataSheet-v01_00-EN.pdf?fileId=5546d462533600a4015355c80333167e   
 __Current Sensor__ = INA229EVM https://www.ti.com/tool/INA229_239EVM   
-__Fsw__ = 100kHz or 10uS period
+__Fsw__ = 100kHz or 10uS period   
+__Topology__ = Syncronous Buck Conveter (non-isolated)   
 
 
 ## Key features and limitation   
