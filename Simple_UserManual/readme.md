@@ -19,7 +19,7 @@ __Topology__ = Syncronous Buck Conveter (non-isolated)
 
 ## Key features and limitation   
 __10A max__ = due to heat dissipation limitation, using small heatsink   
-__50mA min__ = control algorithm still a work in progress   
+__40mA min__ = control algorithm still a work in progress   
 __30-50secs response time__ = need to improve control algorithm, but not needed in this __POC__ (proof of concept) as the control engineers are *"more"* responsible about it
 
 __*POC is to show or prove if the hardware can meet minimum requrements. It does not include the firmware and control feedback algorithm.*__
@@ -93,7 +93,7 @@ Further Improvements in the GUI datalogger and Firmware. But these improvements 
 1. Show only output current in the Left Graph
 2. Show Current status of loop control, either close or open loop
 3. Improve the response time if possible
-4. Program current to below 55mA
+4. Program current to below 40mA
 
 
 # THANKS and give feedback if possible
