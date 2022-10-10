@@ -31,13 +31,13 @@ To control the Digital SMPS, you need to click the three lines (red box) so the 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/01-02.png)
 
 __Basic Tab__ = just to view the Firmware variables/parameter and You cannot control anything   
-__Advanced Tab__ = you will be able to:   
+__Advance Tab__ = you will be able to:   
 a. Close and Open the loop   
 b. Program and change the pwm Ton count (1 count = 184nS) and   
 c. Program and change the desired output constant current  
 
 
-### Overview of Advanced tab
+### Overview of Advance tab
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/02.png)
 
@@ -81,19 +81,21 @@ It is advisable to un-check all variables first as shown below. IT is not necces
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/03-Uncheck.png)
 
-You may change the PWM Ton, by checking its left checkbox and entering values for __PWM_184nS__, values should be within 750 - 10000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside of 32 to 50000 is entered, the Firmware will take care and limit its value. At this moment it is advisable to keep value of __PWM_184nS__ to within 750 - 10000 for demonstration purposes. Exceeding 10000, will generate heat to the MOSFETS. This operation should be open loop and is the default state. After entering the number, click "WRITE" button.
+It is best and safe to open the loop first if the current state is not in open loop or unknown. Check the open_loop check box and enter 0.
+You may change the PWM Ton, by checking its left checkbox too and entering values for __PWM_184nS__, values should be within 900 - 10000, if incorrect entry is enterred, i.e. alphabet, the browser will show "x" next to the number and if numerically outside of 32 to 50000 is entered, the Firmware will take care and limit its value. At this moment it is advisable to keep value of __PWM_184nS__ to within 900 - 10000 for demonstration purposes. Exceeding 10000, will generate heat to the MOSFETS. After entering the numbers (open_loop and PWM_184nS), click "WRITE" button.
 
 To close the loop (__PWM_184nS__, will no longer take effect), enter 1 to __close_loop__ and click "WRITE" button. You may enter the target current (mA) in __TargetCurrent__. After entering the number, click "WRITE" button.
 
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/04-Closeloop.png)
 
-__*Note*__ : You may enter __close_loop__ and __TargetCurrent__ simultaneously, then click "WRITE" button.
+__*Note*__ : You may enter __close_loop__ and __TargetCurrent__ simultaneously or individually, then click "WRITE" button  on every change to take effect.
 
 Further Improvements in the GUI datalogger and Firmware. But these improvements are not important at the moment as these does not impact the POC.
-1. Show only output current in the Left Graph
-2. Show Current status of loop control, either close or open loop
-3. Improve the response time if possible
-4. Program current to below 40mA
+1. Show only output current in the Left Graph. At the moment, some variables need to turn off.
+2. Show Current status of loop control, either close or open loop. At the moment, it cannot be determined if the loop is open or close.
+3. Improve the response time if possible.
+4. Program current to below 40mA.
+5. Increase current to 15A - 20A.
 
 
 # THANKS and give feedback if possible
