@@ -82,7 +82,7 @@ It is advisable to un-check all variables first as shown below. IT is not necces
 ![](https://raw.githubusercontent.com/VictorTagayun/STM32_INA239-INA229/main/Simple_UserManual/pixx/03-Uncheck.png)
 
 It is best and safe to open the loop first if the current state is not in open loop or unknown. Check the __open_loop__ check box and enter 0.
-You may change the PWM Ton, by checking its left checkbox too and entering values for __PWM_184nS__, values should be within __900 - 10000__, if incorrect entry is enterred, i.e. alphabet, the browser will show __"x"__ next to the number and if numerically outside of 32 to 50000 is entered, the Firmware will take care and limit its value. At this moment it is advisable to keep value of __PWM_184nS__ to within __900 - 10000__ for demonstration purposes. Exceeding 10000, will generate heat to the MOSFETS. After entering the numbers (__open_loop__ and __PWM_184nS__), click __"WRITE"__ button.
+You may change the PWM Ton, by checking its left checkbox too and entering values for __PWM_184nS__, values should be within __900 - 10000__, if incorrect entry is enterred, i.e. alphabet, the browser will show __"x"__ next to the number and if numerically outside of __32 to 50000__ is entered, the Firmware will take care and limit its value. At this moment it is advisable to keep value of __PWM_184nS__ to within __900 - 10000__ for demonstration purposes. Exceeding 10000, will generate heat to the MOSFETS. After entering the numbers (__open_loop__ and __PWM_184nS__), click __"WRITE"__ button.
 
 To close the loop (__PWM_184nS__, will no longer take effect), enter 1 to __close_loop__ and click __"WRITE"__ button. You may enter the target current (mA) in __TargetCurrent__. After entering the number, click __"WRITE"__ button.
 
