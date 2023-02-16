@@ -1,0 +1,25 @@
+1. Clock Polarity (CPOL) = High
+2. When using INA239, some are not present compared to NA229, some data will be zero.
+3. When reading, if number of bit exceeded the specified number, the remaining reading will be all zero.
+4. When reading, the data sent wont matter
+5. Hal_delay is not allowed inside a callback void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+
+Sync Buck HW setup1
+1. MOSFET driver = IR2110
+2. Sync Buck MOSFETS = , using UCC27712EVM
+3. Rg = 22 ohms
+4. Iout(min) = 2mA when pCompareCfg.CompareValue = 675;
+5. Vin = 24V
+
+HRTIM FW Set-up
+1. Clock = 170MHz
+2. HRTIM mul = 32, pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
+3. Freq = 100kHz, pTimeBaseCfg.Period = 54400;
+4.  
+
+Sync Buck HW setup2
+1. Vin = 12V
+
+2023-01-05
+1. Troubleshoot reading of Bus voltage and Die temperature
+2.
